@@ -1,5 +1,11 @@
 package interdroid.swan.sensors.impl;
 
+import interdroid.swan.R;
+import interdroid.swan.contextexpressions.ContextTypedValue;
+import interdroid.swan.sensors.AbstractConfigurationActivity;
+import interdroid.swan.sensors.AbstractVdbSensor;
+import interdroid.vdb.content.avro.AvroContentProviderProxy;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -16,32 +22,28 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.ContentValues;
 import android.os.Bundle;
-import interdroid.swan.R;
-import interdroid.swan.sensors.AbstractConfigurationActivity;
-import interdroid.swan.sensors.AbstractVdbSensor;
-import interdroid.vdb.content.avro.AvroContentProviderProxy;
 
 /**
  * This sensor knows how to interface to a Bluetooth Polar Heart Rate Monitor.
- *
+ * 
  * @author nick &lt;palmer@cs.vu.nl&gt;
- *
+ * 
  */
 public class PolarHeartRate extends AbstractVdbSensor {
 	/**
 	 * Access to logger.
 	 */
-	private static final Logger LOG =
-			LoggerFactory.getLogger(PolarHeartRate.class);
-
+	private static final Logger LOG = LoggerFactory
+			.getLogger(PolarHeartRate.class);
 
 	/**
 	 * This configuration activity for this sensor.
+	 * 
 	 * @author nick &lt;palmer@cs.vu.nl&gt;
-	 *
+	 * 
 	 */
-	public static class ConfigurationActivity
-	extends AbstractConfigurationActivity {
+	public static class ConfigurationActivity extends
+			AbstractConfigurationActivity {
 
 		@Override
 		public final int getPreferencesXML() {
@@ -57,9 +59,9 @@ public class PolarHeartRate extends AbstractVdbSensor {
 
 	/**
 	 * The provider for this sensor.
-	 *
+	 * 
 	 * @author nick &lt;palmer@cs.vu.nl&gt;
-	 *
+	 * 
 	 */
 	public static class Provider extends AvroContentProviderProxy {
 
@@ -84,59 +86,48 @@ public class PolarHeartRate extends AbstractVdbSensor {
 	/** The device name configuration. */
 	public static final String DEVICE_NAME = "deviceName";
 	/** The default device name to look for. */
-	private static final String	DEFAULT_DEVICE_NAME	= "Polar iWL";
+	private static final String DEFAULT_DEVICE_NAME = "Polar iWL";
 
 	/**
 	 * @return the schema for this sensor.
 	 */
 	private static String getSchema() {
-		String scheme =
-				"{'type': 'record', 'name': 'polar_hrm', "
-						+ "'namespace': 'interdroid.context.sensor.polar_hrm',"
-						+ "\n'fields': ["
-						+ SCHEMA_TIMESTAMP_FIELDS
-						+ "\n{'name': '"
-						+ BPM
-						+ "', 'type': 'int'},"
-						+ "\n{'name': '"
-						+ INDEX
-						+ "', 'type': 'int'},"
-						+ "\n{'name': '"
-						+ STATUS
-						+ "', 'type': 'int'},"
-						+ "\n{'name': '"
-						+ RRI
-						+ "', 'type': 'int'}"
-						+ "\n]"
-						+ "}";
+		String scheme = "{'type': 'record', 'name': 'polar_hrm', "
+				+ "'namespace': 'interdroid.context.sensor.polar_hrm',"
+				+ "\n'fields': [" + SCHEMA_TIMESTAMP_FIELDS + "\n{'name': '"
+				+ BPM + "', 'type': 'int'}," + "\n{'name': '" + INDEX
+				+ "', 'type': 'int'}," + "\n{'name': '" + STATUS
+				+ "', 'type': 'int'}," + "\n{'name': '" + RRI
+				+ "', 'type': 'int'}" + "\n]" + "}";
 		return scheme.replace('\'', '"');
 	}
 
 	/** The bluetooth adapter we use to get access to bluetooth. */
-	private BluetoothAdapter	mBluetoothAdapter;
+	private BluetoothAdapter mBluetoothAdapter;
 	/** The threads which are monitoring various devices. */
 	private Map<String, Thread> mServiceThreads = new HashMap<String, Thread>();
 
 	/** A thread monitoring one device. */
 	private class DeviceThread extends Thread {
 		/** Time to sleep before pooling for more input to read. */
-		private static final int	POLL_DELAY	= 100;
+		private static final int POLL_DELAY = 100;
 		/** Maximum byte value */
-		private static final int	MAX_BYTE	= 256;
+		private static final int MAX_BYTE = 256;
 		/** Size of the protocol header. */
-		private static final int	HEADER_SIZE	= 7;
+		private static final int HEADER_SIZE = 7;
 		/** The maximum check value. */
-		private static final int	CHECK_MAX	= 255;
+		private static final int CHECK_MAX = 255;
 		/** The start of a frame. */
-		private static final int	FRAME_HEADER_MAGIC	= 254;
+		private static final int FRAME_HEADER_MAGIC = 254;
 
 		/** The input stream from the device. */
 		private InputStream mStream;
 
 		/**
 		 * Construct a DeviceThread to monitor the stream.
-		 *
-		 * @param stream the stream to monitor
+		 * 
+		 * @param stream
+		 *            the stream to monitor
 		 */
 		public DeviceThread(final InputStream stream) {
 			mStream = stream;
@@ -190,7 +181,6 @@ public class PolarHeartRate extends AbstractVdbSensor {
 					}
 				}
 
-
 			} catch (IOException e) {
 				LOG.error("Error creating socket.", e);
 			} finally {
@@ -210,11 +200,17 @@ public class PolarHeartRate extends AbstractVdbSensor {
 
 	/**
 	 * Store values to the DB
-	 * @param values for reuse
-	 * @param index the index
-	 * @param status the status
-	 * @param bpm the bpm
-	 * @param rris list of rri values
+	 * 
+	 * @param values
+	 *            for reuse
+	 * @param index
+	 *            the index
+	 * @param status
+	 *            the status
+	 * @param bpm
+	 *            the bpm
+	 * @param rris
+	 *            list of rri values
 	 */
 	private void storeValues(final ContentValues values, final int index,
 			final int status, final int bpm, final List<String> rris) {
@@ -238,25 +234,24 @@ public class PolarHeartRate extends AbstractVdbSensor {
 	}
 
 	@Override
-	public final void register(final String id, final String valuePath,
-			final Bundle configuration) throws IOException {
+	public final void register(final String id, final ContextTypedValue value)
+			throws IOException {
 		if (!mBluetoothAdapter.isEnabled()) {
 			throw new IllegalStateException("Bluetooth is not enabled.");
 		}
 
-		String deviceName = configuration.getString(DEVICE_NAME);
+		String deviceName = value.getConfiguration().getString(DEVICE_NAME);
 		if (null == deviceName) {
 			deviceName = mDefaultConfiguration.getString(DEVICE_NAME);
 		}
 		boolean found = false;
 		if (mBluetoothAdapter.isEnabled()) {
-			for (BluetoothDevice device
-				: mBluetoothAdapter.getBondedDevices()) {
+			for (BluetoothDevice device : mBluetoothAdapter.getBondedDevices()) {
 				if (device.getName().equals(deviceName)) {
 					LOG.debug("Found paired Polar iWL {}" + device);
 
-					UUID uuid = UUID.fromString(
-							"00001101-0000-1000-8000-00805F9B34FB");
+					UUID uuid = UUID
+							.fromString("00001101-0000-1000-8000-00805F9B34FB");
 					BluetoothSocket socket;
 					try {
 						socket = device.createRfcommSocketToServiceRecord(uuid);
@@ -278,12 +273,12 @@ public class PolarHeartRate extends AbstractVdbSensor {
 		if (!found) {
 			throw new IllegalArgumentException(
 					"Unable to find bonded device to pair with name: "
-			+ deviceName);
+							+ deviceName);
 		}
 	}
 
 	@Override
-	public final void unregister(final String id) {
+	public final void unregister(final String id, final ContextTypedValue value) {
 		Thread thread = mServiceThreads.get(id);
 		if (thread != null) {
 			thread.interrupt();

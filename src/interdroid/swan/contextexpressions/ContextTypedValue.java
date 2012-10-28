@@ -4,6 +4,7 @@ import interdroid.swan.SwanException;
 import interdroid.swan.contextservice.SensorConfigurationException;
 import interdroid.swan.contextservice.SensorManager;
 import interdroid.swan.contextservice.SensorSetupFailedException;
+import interdroid.swan.remote.DeviceManager;
 import interdroid.swan.sensors.IAsynchronousContextSensor;
 
 import java.util.List;
@@ -22,10 +23,10 @@ import android.os.RemoteException;
 
 /**
  * This represents a TypedValue where the values come from context.
- *
+ * 
  * @author roelof &lt;rkemp@cs.vu.nl&gt;
  * @author nick &lt;palmer@cs.vu.nl&gt;
- *
+ * 
  */
 public class ContextTypedValue extends TypedValue {
 	/**
@@ -99,31 +100,47 @@ public class ContextTypedValue extends TypedValue {
 
 	/**
 	 * Construct from a string.
-	 *
+	 * 
 	 * @param unparsedContextInfo
 	 *            the string to parse
 	 */
 	public ContextTypedValue(final String unparsedContextInfo) {
 		this(unparsedContextInfo, HistoryReductionMode.DEFAULT_MODE,
-				DEFAULT_HISTORY_LENGTH);
+				DEFAULT_HISTORY_LENGTH, DeviceManager.LOCAL_DEVICE_ID);
 	}
 
 	/**
 	 * Construct from an entity and path.
-	 *
+	 * 
 	 * @param entity
 	 *            the entity id
 	 * @param path
 	 *            the value path
 	 */
 	public ContextTypedValue(final String entity, final String path) {
-		this(entity, path, null, HistoryReductionMode.DEFAULT_MODE,
+		this(entity, path, DeviceManager.LOCAL_DEVICE_ID, null,
+				HistoryReductionMode.DEFAULT_MODE, DEFAULT_HISTORY_LENGTH);
+	}
+
+	/**
+	 * Construct from entity, path and device Id
+	 * 
+	 * @param entity
+	 *            the entity id
+	 * @param path
+	 *            the value path
+	 * @param deviceId
+	 *            the device id
+	 */
+	public ContextTypedValue(final String entity, final String path,
+			final String deviceId) {
+		this(entity, path, deviceId, null, HistoryReductionMode.DEFAULT_MODE,
 				DEFAULT_HISTORY_LENGTH);
 	}
 
 	/**
 	 * Construct from an entity and path and config map.
-	 *
+	 * 
 	 * @param entity
 	 *            the entity id
 	 * @param path
@@ -133,13 +150,31 @@ public class ContextTypedValue extends TypedValue {
 	 */
 	public ContextTypedValue(final String entity, final String path,
 			final Map<String, String> config) {
-		this(entity, path, config, HistoryReductionMode.DEFAULT_MODE,
+		this(entity, path, DeviceManager.LOCAL_DEVICE_ID, config,
+				HistoryReductionMode.DEFAULT_MODE, DEFAULT_HISTORY_LENGTH);
+	}
+
+	/**
+	 * Construct from entity, path, config map and device id
+	 * 
+	 * @param entity
+	 *            the entity id
+	 * @param path
+	 *            the value path
+	 * @param deviceId
+	 *            the id of the device
+	 * @param config
+	 *            the map with configuration data
+	 */
+	public ContextTypedValue(final String entity, final String path,
+			final String deviceId, final Map<String, String> config) {
+		this(entity, path, deviceId, config, HistoryReductionMode.DEFAULT_MODE,
 				DEFAULT_HISTORY_LENGTH);
 	}
 
 	/**
 	 * Construct from an entity and path and config map with mode and timespan.
-	 *
+	 * 
 	 * @param entity
 	 *            the entity id
 	 * @param path
@@ -151,12 +186,33 @@ public class ContextTypedValue extends TypedValue {
 	 */
 	public ContextTypedValue(final String entity, final String path,
 			final HistoryReductionMode mode, final long timespan) {
-		this(entity, path, null, mode, timespan);
+		this(entity, path, DeviceManager.LOCAL_DEVICE_ID, null, mode, timespan);
+	}
+
+	/**
+	 * Construct from an entity, path, config map and device id with mode and
+	 * timespan
+	 * 
+	 * @param entity
+	 *            the entity id
+	 * @param path
+	 *            the value path
+	 * @param deviceId
+	 *            the id of the device
+	 * @param mode
+	 *            the history reduction mode
+	 * @param timespan
+	 *            the timespan to limit to
+	 */
+	public ContextTypedValue(final String entity, final String path,
+			final String deviceId, final HistoryReductionMode mode,
+			final long timespan) {
+		this(entity, path, deviceId, null, mode, timespan);
 	}
 
 	/**
 	 * Construct from an entity and path and config map with mode and timespan.
-	 *
+	 * 
 	 * @param entity
 	 *            the entity id
 	 * @param path
@@ -166,12 +222,30 @@ public class ContextTypedValue extends TypedValue {
 	 */
 	public ContextTypedValue(final String entity, final String path,
 			final HistoryReductionMode mode) {
-		this(entity, path, null, mode, DEFAULT_HISTORY_LENGTH);
+		this(entity, path, DeviceManager.LOCAL_DEVICE_ID, null, mode,
+				DEFAULT_HISTORY_LENGTH);
+	}
+
+	/**
+	 * Construct from entity, path and device Id with mode
+	 * 
+	 * @param entity
+	 *            the entity Id
+	 * @param path
+	 *            the value path
+	 * @param deviceId
+	 *            the device Id
+	 * @param mode
+	 *            the history reduction mode
+	 */
+	public ContextTypedValue(final String entity, final String path,
+			final String deviceId, final HistoryReductionMode mode) {
+		this(entity, path, deviceId, null, mode, DEFAULT_HISTORY_LENGTH);
 	}
 
 	/**
 	 * Construct from an entity and path and config map.
-	 *
+	 * 
 	 * @param entity
 	 *            the entity id
 	 * @param path
@@ -183,13 +257,34 @@ public class ContextTypedValue extends TypedValue {
 	 */
 	public ContextTypedValue(final String entity, final String path,
 			final Map<String, String> config, final HistoryReductionMode mode) {
-		this(entity, path, config, mode, DEFAULT_HISTORY_LENGTH);
+		this(entity, path, DeviceManager.LOCAL_DEVICE_ID, config, mode,
+				DEFAULT_HISTORY_LENGTH);
 	}
 
+	/**
+	 * Construct from an entity, path and device Id with the config map and
+	 * mode.
+	 * 
+	 * @param entity
+	 *            the entity Id
+	 * @param path
+	 *            the value path
+	 * @param deviceId
+	 *            the id of the device
+	 * @param config
+	 *            the map with configuration data
+	 * @param mode
+	 *            the history reduction mode
+	 */
+	public ContextTypedValue(final String entity, final String path,
+			final String deviceId, final Map<String, String> config,
+			final HistoryReductionMode mode) {
+		this(entity, path, deviceId, config, mode, DEFAULT_HISTORY_LENGTH);
+	}
 
 	/**
-	 * Construct from an entity and path and config map.
-	 *
+	 * Construct from an entity and value path with config map.
+	 * 
 	 * @param entity
 	 *            the entity id
 	 * @param path
@@ -204,7 +299,30 @@ public class ContextTypedValue extends TypedValue {
 	public ContextTypedValue(final String entity, final String path,
 			final Map<String, String> config, final HistoryReductionMode mode,
 			final long timespan) {
-		super(mode);
+		this(entity, path, DeviceManager.LOCAL_DEVICE_ID, config, mode,
+				timespan);
+	}
+
+	/**
+	 * Construct from an entity, value path and device Id with config map.
+	 * 
+	 * @param entity
+	 *            the entity id
+	 * @param path
+	 *            the value path
+	 * @param config
+	 *            the map with configuration data
+	 * @param mode
+	 *            the history reduction mode
+	 * @param timespan
+	 *            the timespan to limit to
+	 * @param deviceId
+	 *            the id of the device
+	 */
+	public ContextTypedValue(final String entity, final String path,
+			final String deviceId, final Map<String, String> config,
+			final HistoryReductionMode mode, final long timespan) {
+		super(mode, deviceId);
 		mEntity = entity;
 		mValuePath = path;
 		setHistoryTimespan(timespan);
@@ -216,23 +334,8 @@ public class ContextTypedValue extends TypedValue {
 	}
 
 	/**
-	 * Sets the timespan of history to keep. This sets to DEFAULT_HISTORY_LENGTH
-	 * if timespan <= 0
-	 *
-	 * @param timespan
-	 *            the timespan to set to.
-	 */
-	private void setHistoryTimespan(final long timespan) {
-		if (timespan > 0) {
-			mTimespan = timespan;
-		} else {
-			mTimespan = DEFAULT_HISTORY_LENGTH;
-		}
-	}
-
-	/**
 	 * Construct with a specific history mode and timespan.
-	 *
+	 * 
 	 * @param unparsedContextInfo
 	 *            the string to parse
 	 * @param mode
@@ -241,8 +344,9 @@ public class ContextTypedValue extends TypedValue {
 	 *            the timespan to consider
 	 */
 	public ContextTypedValue(final String unparsedContextInfo,
-			final HistoryReductionMode mode, final long timespan) {
-		super(mode);
+			final HistoryReductionMode mode, final long timespan,
+			final String deviceId) {
+		super(mode, deviceId);
 		String[] splitOnEntity = unparsedContextInfo.split(
 				ENTITY_VALUE_PATH_SEPARATOR, 2);
 		this.mEntity = splitOnEntity[0];
@@ -272,7 +376,7 @@ public class ContextTypedValue extends TypedValue {
 
 	/**
 	 * Construct from a Parcel.
-	 *
+	 * 
 	 * @param source
 	 *            the Parcel to read from
 	 */
@@ -365,7 +469,7 @@ public class ContextTypedValue extends TypedValue {
 
 	/**
 	 * Read from parcel.
-	 *
+	 * 
 	 * @param in
 	 *            the in
 	 */
@@ -409,7 +513,7 @@ public class ContextTypedValue extends TypedValue {
 				IAsynchronousContextSensor sensor = IAsynchronousContextSensor.Stub
 						.asInterface(service);
 				try {
-					sensor.register(id, mValuePath, mConfiguration);
+					sensor.register(id, ContextTypedValue.this);
 					mRegistrationFailed = false;
 				} catch (RemoteException e) {
 					LOG.error("Registration failed!", e);
@@ -426,7 +530,7 @@ public class ContextTypedValue extends TypedValue {
 	public final void destroy(final String id, final SensorManager sensorManager)
 			throws SwanException {
 		try {
-			mSensor.unregister(id);
+			mSensor.unregister(id, ContextTypedValue.this);
 		} catch (RemoteException e) {
 			throw new SwanException(e);
 		}
@@ -466,7 +570,7 @@ public class ContextTypedValue extends TypedValue {
 	}
 
 	/**
-	 *
+	 * 
 	 * @return a string with the configuration for this value.
 	 */
 	private String getParseConfig() {
@@ -493,7 +597,7 @@ public class ContextTypedValue extends TypedValue {
 
 	/**
 	 * Sets the id for this TypedValue.
-	 *
+	 * 
 	 * @param id
 	 *            the id to set to
 	 */
@@ -512,5 +616,20 @@ public class ContextTypedValue extends TypedValue {
 	public long getHistoryLength() {
 		// TODO: Rename to mHistoryLength
 		return mTimespan;
+	}
+
+	/**
+	 * Sets the timespan of history to keep. This sets to DEFAULT_HISTORY_LENGTH
+	 * if timespan <= 0
+	 * 
+	 * @param timespan
+	 *            the timespan to set to.
+	 */
+	private void setHistoryTimespan(final long timespan) {
+		if (timespan > 0) {
+			mTimespan = timespan;
+		} else {
+			mTimespan = DEFAULT_HISTORY_LENGTH;
+		}
 	}
 }

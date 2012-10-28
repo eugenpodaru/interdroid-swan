@@ -1,5 +1,6 @@
 package interdroid.swan.sensors;
 
+import interdroid.swan.contextexpressions.ContextTypedValue;
 import interdroid.swan.contextexpressions.TimestampedValue;
 
 import java.io.IOException;
@@ -18,19 +19,19 @@ public interface SensorInterface {
 
 	/**
 	 * Handle registering an expression.
+	 * @param deviceId the id of the device to which the sensor belongs
 	 * @param id the expression to register
 	 * @param valuePath the value path being registered
 	 * @param configuration the configuration for the expression
 	 * @throws IOException if there is a problem with the sensor
 	 */
-	void register(String id, String valuePath,
-			Bundle configuration) throws IOException;
+	void register(String id, ContextTypedValue value) throws IOException;
 
 	/**
 	 * Handle unregistering an expression.
 	 * @param id the expression to unregister
 	 */
-	void unregister(String id);
+	void unregister(String id, ContextTypedValue value);
 
 	/**
 	 * @return the scheme for this sensor

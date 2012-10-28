@@ -1,13 +1,12 @@
 package interdroid.swan.sensors.impl;
 
-import interdroid.swan.SwanException;
 import interdroid.swan.ContextTypedValueListener;
 import interdroid.swan.R;
+import interdroid.swan.SwanException;
 import interdroid.swan.contextexpressions.ContextTypedValue;
 import interdroid.swan.contextexpressions.TimestampedValue;
 import interdroid.swan.sensors.AbstractConfigurationActivity;
 import interdroid.swan.sensors.AbstractMemorySensor;
-
 import android.os.Bundle;
 
 public class IntentSensor extends AbstractMemorySensor {
@@ -57,13 +56,10 @@ public class IntentSensor extends AbstractMemorySensor {
 
 	@Override
 	public String getScheme() {
-		return "{'type': 'record', 'name': 'intent', " +
-				"'namespace': 'context.sensor.intent',"
-				+ " 'fields': ["
-				+ "            {'name': '"
-				+ STARTED_FIELD
-				+ "', 'type': 'string'}"
-				+ "           ]"
+		return "{'type': 'record', 'name': 'intent', "
+				+ "'namespace': 'context.sensor.intent'," + " 'fields': ["
+				+ "            {'name': '" + STARTED_FIELD
+				+ "', 'type': 'string'}" + "           ]"
 				+ "}".replace('\'', '"');
 	}
 
@@ -72,12 +68,11 @@ public class IntentSensor extends AbstractMemorySensor {
 	}
 
 	@Override
-	public void register(final String id, final String valuePath,
-			final Bundle configuration) {
+	public void register(final String id, final ContextTypedValue value) {
 		try {
 			contextServiceConnector.registerContextTypedValue(id + "."
-					+ MAGIC_RELAY, new ContextTypedValue(
-					"logcat" + ContextTypedValue.ENTITY_VALUE_PATH_SEPARATOR
+					+ MAGIC_RELAY, new ContextTypedValue("logcat"
+					+ ContextTypedValue.ENTITY_VALUE_PATH_SEPARATOR
 					+ "log?logcat_parameters=ActivityManager:I *:S"),
 					new ContextTypedValueListener() {
 
@@ -90,7 +85,7 @@ public class IntentSensor extends AbstractMemorySensor {
 								if (getValues().size() >= HISTORY_SIZE) {
 									getValues().remove(0);
 								}
-								putValueTrimSize(valuePath, id,
+								putValueTrimSize(value.getValuePath(), id,
 										newValues[0].getTimestamp(),
 										getIntentFrom(newValues[0].getValue()),
 										HISTORY_SIZE);
@@ -112,7 +107,7 @@ public class IntentSensor extends AbstractMemorySensor {
 	}
 
 	@Override
-	public void unregister(final String id) {
+	public void unregister(final String id, final ContextTypedValue value) {
 		try {
 			contextServiceConnector.unregisterContextTypedValue(id + "."
 					+ MAGIC_RELAY);

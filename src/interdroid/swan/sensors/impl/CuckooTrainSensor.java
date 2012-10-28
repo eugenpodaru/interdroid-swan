@@ -1,9 +1,10 @@
 package interdroid.swan.sensors.impl;
 
+import interdroid.cuckoo.client.Cuckoo;
 import interdroid.swan.R;
+import interdroid.swan.contextexpressions.ContextTypedValue;
 import interdroid.swan.sensors.AbstractConfigurationActivity;
 import interdroid.swan.sensors.AbstractMemorySensor;
-import interdroid.cuckoo.client.Cuckoo;
 
 import java.util.Date;
 import java.util.List;
@@ -85,29 +86,35 @@ public class CuckooTrainSensor extends AbstractMemorySensor {
 	}
 
 	@Override
-	public final void register(String id, String valuePath, Bundle configuration) {
+	public final void register(final String id, final ContextTypedValue value) {
 		if (registeredConfigurations.size() == 1) {
-			registerReceiver(
-					mReceiver,
-					new IntentFilter(
-							"interdroid.swan.sensors.impl.CuckooTrainSensor.ACTION"));
+			registerReceiver(mReceiver, new IntentFilter(
+					"interdroid.swan.sensors.impl.CuckooTrainSensor.ACTION"));
 		}
 
 		try {
-			Cuckoo.invokeMethodBind(this, id,
+			Cuckoo.invokeMethodBind(
+					this,
+					id,
 					"interdroid.swan.sensors.impl.CuckooTrainSensor",
-					"start", new Object[] { id, valuePath, configuration });
+					"start",
+					new Object[] { id, value.getValuePath(),
+							value.getConfiguration() });
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
 	@Override
-	public final void unregister(String id) {
+	public final void unregister(final String id, final ContextTypedValue value) {
+		unregister(id);
+	}
+
+	private void unregister(final String id) {
 		try {
 			Cuckoo.invokeMethodUnbind(this, id,
-					"interdroid.swan.sensors.impl.CuckooWebsiteSensor",
-					"stop", new Object[] { id });
+					"interdroid.swan.sensors.impl.CuckooWebsiteSensor", "stop",
+					new Object[] { id });
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

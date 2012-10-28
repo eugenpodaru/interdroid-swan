@@ -1,6 +1,7 @@
 package interdroid.swan.sensors.impl;
 
 import interdroid.swan.R;
+import interdroid.swan.contextexpressions.ContextTypedValue;
 import interdroid.swan.sensors.AbstractConfigurationActivity;
 import interdroid.swan.sensors.AbstractMemorySensor;
 
@@ -113,7 +114,7 @@ public class MovementSensor extends AbstractMemorySensor {
 	}
 
 	@Override
-	public final void register(String id, String valuePath, Bundle configuration) {
+	public final void register(final String id, final ContextTypedValue value) {
 		updateAccuracy();
 	}
 
@@ -142,7 +143,7 @@ public class MovementSensor extends AbstractMemorySensor {
 	}
 
 	@Override
-	public final void unregister(String id) {
+	public final void unregister(final String id, final ContextTypedValue value) {
 		updateAccuracy();
 	}
 

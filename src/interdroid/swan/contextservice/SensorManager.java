@@ -27,6 +27,9 @@ public class SensorManager {
 	/** The sensor information. */
 	private List<SensorServiceInfo> sensorList =
 			new ArrayList<SensorServiceInfo>();
+	
+	/** The information about the remote sensor */
+	private SensorServiceInfo remoteSensorServiceInfo;
 
 	/** The service connections. */
 	private final List<ServiceConnection> connectionList =
@@ -77,25 +80,33 @@ public class SensorManager {
 	 */
 	private void bindToSensor(final ContextTypedValue value,
 			final ServiceConnection connection, final boolean discover)
-			throws SensorConfigurationException,
-			SensorSetupFailedException {
+			throws SensorConfigurationException, SensorSetupFailedException {
 		if (discover) {
 			discover();
 		}
-		for (SensorServiceInfo sensorInfo : sensorList) {
-			if (sensorInfo.getEntity().equals(value.getEntity())
-					&& sensorInfo.getValuePaths()
-							.contains(value.getValuePath())
-					&& sensorInfo
-							.acceptsConfiguration(value.getConfiguration())) {
-				// bind to the sensor
-				context.bindService(sensorInfo.getIntent(), connection,
-						Context.BIND_AUTO_CREATE);
-				return;
+
+		//if the context typed value needs to be registered to a remote device
+		//bind to the remote sensor service
+		if (value.isRemote() && remoteSensorServiceInfo != null) {
+			context.bindService(remoteSensorServiceInfo.getIntent(),
+					connection, Context.BIND_AUTO_CREATE);
+			return;
+		} else {
+			for (SensorServiceInfo sensorInfo : sensorList) {
+				if (sensorInfo.getEntity().equals(value.getEntity())
+						&& sensorInfo.getValuePaths().contains(
+								value.getValuePath())
+						&& sensorInfo.acceptsConfiguration(value
+								.getConfiguration())) {
+					// bind to the sensor
+					context.bindService(sensorInfo.getIntent(), connection,
+							Context.BIND_AUTO_CREATE);
+					return;
+				}
 			}
 		}
-		throw new SensorSetupFailedException(
-				"Failed to bind to service for: " + value.toString());
+		throw new SensorSetupFailedException("Failed to bind to service for: "
+				+ value.toString());
 	}
 
 	/**
@@ -113,6 +124,17 @@ public class SensorManager {
 		sensorList.clear();
 		LOG.debug("Starting sensor discovery");
 		sensorList = ContextManager.getSensors(context);
+		
+		//we need to find the information about the remote sensor
+		//and store it separately because we use it differently from the other sensors
+		for(SensorServiceInfo info : sensorList)
+			if(info.getEntity().equals("remotesensor"))
+			{
+				remoteSensorServiceInfo = info;
+				break;
+			}
+		//remove it from the sensor list
+		sensorList.remove(remoteSensorServiceInfo);
 	}
 
 	/**

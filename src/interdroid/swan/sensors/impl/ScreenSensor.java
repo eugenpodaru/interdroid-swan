@@ -1,6 +1,7 @@
 package interdroid.swan.sensors.impl;
 
 import interdroid.swan.R;
+import interdroid.swan.contextexpressions.ContextTypedValue;
 import interdroid.swan.sensors.AbstractConfigurationActivity;
 import interdroid.swan.sensors.AbstractVdbSensor;
 import interdroid.vdb.content.avro.AvroContentProviderProxy;
@@ -17,9 +18,9 @@ import android.os.Bundle;
 
 /**
  * A sensor for if the screen is on or off.
- *
+ * 
  * @author nick &lt;palmer@cs.vu.nl&gt;
- *
+ * 
  */
 public class ScreenSensor extends AbstractVdbSensor {
 	/**
@@ -30,9 +31,9 @@ public class ScreenSensor extends AbstractVdbSensor {
 
 	/**
 	 * The configuration activity for this sensor.
-	 *
+	 * 
 	 * @author nick &lt;palmer@cs.vu.nl&gt;
-	 *
+	 * 
 	 */
 	public static class ConfigurationActivity extends
 			AbstractConfigurationActivity {
@@ -66,9 +67,9 @@ public class ScreenSensor extends AbstractVdbSensor {
 
 	/**
 	 * The provider for this sensor.
-	 *
+	 * 
 	 * @author nick &lt;palmer@cs.vu.nl&gt;
-	 *
+	 * 
 	 */
 	public static class Provider extends AvroContentProviderProxy {
 
@@ -132,8 +133,7 @@ public class ScreenSensor extends AbstractVdbSensor {
 	}
 
 	@Override
-	public final void register(final String id, final String valuePath,
-			final Bundle configuration) {
+	public final void register(final String id, final ContextTypedValue value) {
 		if (registeredConfigurations.size() == 1) {
 			IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
 			filter.addAction(Intent.ACTION_SCREEN_OFF);
@@ -142,7 +142,7 @@ public class ScreenSensor extends AbstractVdbSensor {
 	}
 
 	@Override
-	public final void unregister(final String id) {
+	public final void unregister(final String id, final ContextTypedValue value) {
 		if (registeredConfigurations.size() == 0) {
 			unregisterReceiver(screenReceiver);
 		}
@@ -152,5 +152,4 @@ public class ScreenSensor extends AbstractVdbSensor {
 	public final void onDestroySensor() {
 		unregisterReceiver(screenReceiver);
 	}
-
 }

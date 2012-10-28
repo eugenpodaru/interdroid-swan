@@ -30,46 +30,43 @@ public class ContextManager extends ContextServiceConnector {
 	/**
 	 * Access to logger.
 	 */
-	private static final Logger LOG =
-			LoggerFactory.getLogger(ContextManager.class);
+	private static final Logger LOG = LoggerFactory
+			.getLogger(ContextManager.class);
+
+	/** The RemoteContextService intent action. */
+	public static final String REMOTE_CONTEXT_SERVICE = "interdroid.swan.intent.REMOTECONTEXTSERVICE";
 
 	/** The intent action for broadcasts of new readings. */
-	public static final String ACTION_NEWREADING =
-			"interdroid.swan.NEWREADING";
+	public static final String ACTION_NEWREADING = "interdroid.swan.NEWREADING";
 
 	/**
 	 * The intent action for announcing the expiration of the previous reading.
 	 */
-	public static final String ACTION_INVALIDATEREADING =
-			"interdroid.swan.INVALIDATEREADING";
+	public static final String ACTION_INVALIDATEREADING = "interdroid.swan.INVALIDATEREADING";
 
 	/**
 	 * The intent action for broadcasts of expressions changing their state to
 	 * TRUE.
 	 */
-	public static final String ACTION_EXPRESSIONTRUE =
-			"interdroid.swan.EXPRESSIONTRUE";
+	public static final String ACTION_EXPRESSIONTRUE = "interdroid.swan.EXPRESSIONTRUE";
 
 	/**
 	 * The intent action for broadcasts of expressions changing their state to
 	 * FALSE.
 	 */
-	public static final String ACTION_EXPRESSIONFALSE =
-			"interdroid.swan.EXPRESSIONFALSE";
+	public static final String ACTION_EXPRESSIONFALSE = "interdroid.swan.EXPRESSIONFALSE";
 
 	/**
 	 * The intent action for broadcasts of expressions changing their state to
 	 * UNDEFINED.
 	 */
-	public static final String ACTION_EXPRESSIONUNDEFINED =
-			"interdroid.swan.EXPRESSIONUNDEFINED";
+	public static final String ACTION_EXPRESSIONUNDEFINED = "interdroid.swan.EXPRESSIONUNDEFINED";
 
 	/**
 	 * The intent action for broadcasts of expressions changing their state to
 	 * UNDEFINED.
 	 */
-	public static final String ACTION_EXPRESSIONERROR =
-			"interdroid.swan.EXPRESSIONERROR";
+	public static final String ACTION_EXPRESSIONERROR = "interdroid.swan.EXPRESSIONERROR";
 
 	/** The Constant TRUE. */
 	public static final int TRUE = 1;
@@ -81,37 +78,35 @@ public class ContextManager extends ContextServiceConnector {
 	public static final int UNDEFINED = -1;
 
 	/** Stores the listeners for each context expression. */
-	private final HashMap<String, ContextExpressionListener>
-	contextExpressionListeners;
+	private final HashMap<String, ContextExpressionListener> contextExpressionListeners;
 
 	/** Has the broadcast receiver for context expressions been registered? */
 	private boolean contextExpressionBroadcastReceiverRegistered = false;
 
 	/** Stores the listeners for each context expression. */
-	private final HashMap<String, ContextTypedValueListener>
-	contextTypedValueListeners;
+	private final HashMap<String, ContextTypedValueListener> contextTypedValueListeners;
 
 	/** Has the broadcast receiver for context entities been registered? */
 	private boolean contextTypedValueBroadcastReceiverRegistered = false;
 
 	/**
 	 * Instantiates a new context manager.
-	 *
+	 * 
 	 * @param context
 	 *            the application context
 	 */
 	public ContextManager(final Context context) {
 		super(context);
-		contextExpressionListeners =
-				new HashMap<String, ContextExpressionListener>();
-		contextTypedValueListeners =
-				new HashMap<String, ContextTypedValueListener>();
+		contextExpressionListeners = new HashMap<String, ContextExpressionListener>();
+		contextTypedValueListeners = new HashMap<String, ContextTypedValueListener>();
 	}
 
 	/**
-	 * Destroy this ContextManager. This should be called in
-	 * <code>onStop</code> of the activity that started this ContextManager.
-	 * @throws SwanException if something goes wrong.
+	 * Destroy this ContextManager. This should be called in <code>onStop</code>
+	 * of the activity that started this ContextManager.
+	 * 
+	 * @throws SwanException
+	 *             if something goes wrong.
 	 */
 	public final void destroy() throws SwanException {
 		for (String id : contextTypedValueListeners.keySet()) {
@@ -148,15 +143,19 @@ public class ContextManager extends ContextServiceConnector {
 
 	/**
 	 * Registers a context typed value with the system.
-	 * @param id the id for the value.
-	 * @param value the value to register.
-	 * @param listener the listener for callbacks for the value.
-	 * @throws SwanException if registration fails.
+	 * 
+	 * @param id
+	 *            the id for the value.
+	 * @param value
+	 *            the value to register.
+	 * @param listener
+	 *            the listener for callbacks for the value.
+	 * @throws SwanException
+	 *             if registration fails.
 	 */
 	public final void registerContextTypedValue(final String id,
 			final ContextTypedValue value,
-			final ContextTypedValueListener listener)
-					throws SwanException {
+			final ContextTypedValueListener listener) throws SwanException {
 		try {
 			SwanServiceException exception = getContextService()
 					.registerContextTypedValue(id, value);
@@ -182,8 +181,11 @@ public class ContextManager extends ContextServiceConnector {
 
 	/**
 	 * Unregisters the ContextTypedValue with the given id.
-	 * @param id the id of the TypedValue to unregister
-	 * @throws SwanException if something goes wrong.
+	 * 
+	 * @param id
+	 *            the id of the TypedValue to unregister
+	 * @throws SwanException
+	 *             if something goes wrong.
 	 */
 	public final void unregisterContextTypedValue(final String id)
 			throws SwanException {
@@ -207,7 +209,7 @@ public class ContextManager extends ContextServiceConnector {
 	/**
 	 * Adds an expression with an explicit identifier. If the identifier already
 	 * exists, it will be overwritten.
-	 *
+	 * 
 	 * @param expressionId
 	 *            the expression id
 	 * @param expression
@@ -220,10 +222,10 @@ public class ContextManager extends ContextServiceConnector {
 	public final void registerContextExpression(final String expressionId,
 			final Expression expression,
 			final ContextExpressionListener expressionListener)
-					throws SwanException {
+			throws SwanException {
 		try {
-			LOG.debug("attempting to add expression {} id: {}",
-					expression, expressionId);
+			LOG.debug("attempting to add expression {} id: {}", expression,
+					expressionId);
 			SwanServiceException exception = getContextService()
 					.addContextExpression(expressionId, expression);
 			if (exception != null) {
@@ -246,7 +248,7 @@ public class ContextManager extends ContextServiceConnector {
 
 	/**
 	 * Removes the context expression.
-	 *
+	 * 
 	 * @param expressionId
 	 *            the expression id
 	 * @throws SwanException
@@ -329,8 +331,7 @@ public class ContextManager extends ContextServiceConnector {
 	 * The receiver object that receives updates about the state of context
 	 * expressions.
 	 */
-	private final BroadcastReceiver contextTypedValueBroadcastReceiver
-	= new BroadcastReceiver() {
+	private final BroadcastReceiver contextTypedValueBroadcastReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(final Context context, final Intent intent) {
 			Uri data = intent.getData();
@@ -342,8 +343,7 @@ public class ContextManager extends ContextServiceConnector {
 				if (listener != null) {
 					Parcelable[] parcelables = (Parcelable[]) intent
 							.getExtras().get("values");
-					TimestampedValue[] timestampedValues =
-							new TimestampedValue[parcelables.length];
+					TimestampedValue[] timestampedValues = new TimestampedValue[parcelables.length];
 					System.arraycopy(parcelables, 0, timestampedValues, 0,
 							parcelables.length);
 
@@ -362,8 +362,7 @@ public class ContextManager extends ContextServiceConnector {
 	 * The receiver object that receives updates about the state of context
 	 * expressions.
 	 */
-	private final BroadcastReceiver contextExpressionBroadcastReceiver =
-			new BroadcastReceiver() {
+	private final BroadcastReceiver contextExpressionBroadcastReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(final Context context, final Intent intent) {
 			Uri data = intent.getData();
@@ -385,8 +384,7 @@ public class ContextManager extends ContextServiceConnector {
 				}
 			} else if (intent.getAction().equals(ACTION_EXPRESSIONERROR)) {
 				if (listener != null) {
-					SwanException exception =
-							(SwanException) intent
+					SwanException exception = (SwanException) intent
 							.getSerializableExtra("exception");
 					listener.onException(expressionId, exception);
 				}
@@ -396,15 +394,15 @@ public class ContextManager extends ContextServiceConnector {
 	};
 
 	/**
-	 * @param context the context to use to fetch sensor information
+	 * @param context
+	 *            the context to use to fetch sensor information
 	 * @return a list of SensorServiceInfo with information about sensors.
 	 */
 	public static List<SensorServiceInfo> getSensors(final Context context) {
 		List<SensorServiceInfo> result = new ArrayList<SensorServiceInfo>();
 		LOG.debug("Starting sensor discovery");
 		PackageManager pm = context.getPackageManager();
-		Intent queryIntent = new Intent(
-				"interdroid.swan.sensor.DISCOVER");
+		Intent queryIntent = new Intent("interdroid.swan.sensor.DISCOVER");
 		List<ResolveInfo> discoveredSensors = pm.queryIntentServices(
 				queryIntent, PackageManager.GET_META_DATA);
 		LOG.debug("Found " + discoveredSensors.size() + " sensors");
@@ -424,5 +422,4 @@ public class ContextManager extends ContextServiceConnector {
 		}
 		return result;
 	}
-
 }

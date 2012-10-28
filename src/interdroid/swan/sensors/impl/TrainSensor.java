@@ -1,6 +1,7 @@
 package interdroid.swan.sensors.impl;
 
 import interdroid.swan.R;
+import interdroid.swan.contextexpressions.ContextTypedValue;
 import interdroid.swan.sensors.AbstractConfigurationActivity;
 import interdroid.swan.sensors.AbstractMemorySensor;
 
@@ -173,14 +174,15 @@ public class TrainSensor extends AbstractMemorySensor {
 	}
 
 	@Override
-	public final void register(String id, String valuePath, Bundle configuration) {
-		TrainPoller trainPoller = new TrainPoller(id, valuePath, configuration);
+	public final void register(final String id, final ContextTypedValue value) {
+		TrainPoller trainPoller = new TrainPoller(id, value.getValuePath(),
+				value.getConfiguration());
 		activeThreads.put(id, trainPoller);
 		trainPoller.start();
 	}
 
 	@Override
-	public final void unregister(String id) {
+	public final void unregister(final String id, final ContextTypedValue value) {
 		activeThreads.remove(id).interrupt();
 	}
 

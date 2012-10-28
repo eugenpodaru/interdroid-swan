@@ -1,6 +1,7 @@
 package interdroid.swan.sensors.impl;
 
 import interdroid.swan.R;
+import interdroid.swan.contextexpressions.ContextTypedValue;
 import interdroid.swan.sensors.AbstractConfigurationActivity;
 import interdroid.swan.sensors.AbstractVdbSensor;
 import interdroid.vdb.content.avro.AvroContentProviderProxy;
@@ -301,29 +302,28 @@ public class SmartLocationSensor extends AbstractVdbSensor {
 	private List<String> mWithinIds = new ArrayList<String>();
 
 	@Override
-	public final void register(final String id, final String valuePath,
-			final Bundle configuration) {
-		if (valuePath.equals(WITHIN)) {
-			mWithinLatitudes.add(Double.valueOf(configuration
+	public final void register(final String id, final ContextTypedValue value) {
+		if (value.getValuePath().equals(WITHIN)) {
+			mWithinLatitudes.add(Double.valueOf(value.getConfiguration()
 					.getDouble(LATITUDE)));
-			mWithinLongitudes.add(Double.valueOf(configuration
+			mWithinLongitudes.add(Double.valueOf(value.getConfiguration()
 					.getDouble(LONGITUDE)));
-			mWithinMaxSpeeds.add(configuration.getDouble(MAX_SPEED,
+			mWithinMaxSpeeds.add(value.getConfiguration().getDouble(MAX_SPEED,
 					mDefaultConfiguration.getDouble(MAX_SPEED)));
-			mWithinRanges.add(configuration.getDouble(WITHIN_RANGE,
+			mWithinRanges.add(value.getConfiguration().getDouble(WITHIN_RANGE,
 					mDefaultConfiguration.getDouble(WITHIN_RANGE)));
 			mWithinIds.add(id);
-		} else if (valuePath.equals(VICINITY)) {
-			mVicinityLatitudes.add(Double.valueOf(configuration
+		} else if (value.getValuePath().equals(VICINITY)) {
+			mVicinityLatitudes.add(Double.valueOf(value.getConfiguration()
 					.getString(LATITUDE)));
-			mVicinityLongitudes.add(Double.valueOf(configuration
+			mVicinityLongitudes.add(Double.valueOf(value.getConfiguration()
 					.getString(LONGITUDE)));
-			mVicinityMaxSpeeds.add(configuration.getDouble(MAX_SPEED,
-					mDefaultConfiguration.getDouble(MAX_SPEED)));
+			mVicinityMaxSpeeds.add(value.getConfiguration().getDouble(
+					MAX_SPEED, mDefaultConfiguration.getDouble(MAX_SPEED)));
 			mVicinityIds.add(id);
 		} else {
-			throw new RuntimeException("invalid valuePath: '" + valuePath
-					+ "' for SmartLocationSensor");
+			throw new RuntimeException("invalid valuePath: '"
+					+ value.getValuePath() + "' for SmartLocationSensor");
 		}
 		requestSingleUpdate();
 	}
@@ -392,10 +392,9 @@ public class SmartLocationSensor extends AbstractVdbSensor {
 	}
 
 	@Override
-	public final void unregister(final String id) {
+	public final void unregister(final String id, final ContextTypedValue value) {
 		if (registeredConfigurations.size() == 0) {
 		}
-
 	}
 
 	@Override

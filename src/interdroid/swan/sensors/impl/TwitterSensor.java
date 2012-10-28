@@ -1,6 +1,7 @@
 package interdroid.swan.sensors.impl;
 
 import interdroid.swan.R;
+import interdroid.swan.contextexpressions.ContextTypedValue;
 import interdroid.swan.sensors.AbstractConfigurationActivity;
 import interdroid.swan.sensors.AbstractMemorySensor;
 
@@ -23,7 +24,7 @@ import android.os.Bundle;
 
 /**
  * Based on the original TwitterSensor written by Rick de Leeuw
- *
+ * 
  * @author rkemp
  */
 public class TwitterSensor extends AbstractMemorySensor {
@@ -105,15 +106,15 @@ public class TwitterSensor extends AbstractMemorySensor {
 	}
 
 	@Override
-	public final void register(String id, String valuePath, Bundle configuration) {
-		TwitterPoller twitterPoller = new TwitterPoller(id, valuePath,
-				configuration);
+	public final void register(final String id, final ContextTypedValue value) {
+		TwitterPoller twitterPoller = new TwitterPoller(id,
+				value.getValuePath(), value.getConfiguration());
 		activeThreads.put(id, twitterPoller);
 		twitterPoller.start();
 	}
 
 	@Override
-	public final void unregister(String id) {
+	public final void unregister(final String id, final ContextTypedValue value) {
 		activeThreads.remove(id).interrupt();
 	}
 

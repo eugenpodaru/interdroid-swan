@@ -1,6 +1,7 @@
 package interdroid.swan.sensors.impl;
 
 import interdroid.swan.R;
+import interdroid.swan.contextexpressions.ContextTypedValue;
 import interdroid.swan.sensors.AbstractConfigurationActivity;
 import interdroid.swan.sensors.AbstractMemorySensor;
 
@@ -75,16 +76,16 @@ public class LogCatSensor extends AbstractMemorySensor {
 	}
 
 	@Override
-	public final void register(String id, String valuePath, Bundle configuration) {
+	public final void register(final String id, final ContextTypedValue value) {
 		LOG.debug("Logcat got registration for: {}", id);
-		LogcatPoller logcatPoller = new LogcatPoller(id, valuePath,
-				configuration);
+		LogcatPoller logcatPoller = new LogcatPoller(id, value.getValuePath(),
+				value.getConfiguration());
 		activeThreads.put(id, logcatPoller);
 		logcatPoller.start();
 	}
 
 	@Override
-	public final void unregister(String id) {
+	public final void unregister(final String id, final ContextTypedValue value) {
 		activeThreads.remove(id).terminate();
 	}
 

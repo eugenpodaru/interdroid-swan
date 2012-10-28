@@ -1,6 +1,7 @@
 package interdroid.swan.sensors.impl;
 
 import interdroid.swan.R;
+import interdroid.swan.contextexpressions.ContextTypedValue;
 import interdroid.swan.sensors.AbstractConfigurationActivity;
 import interdroid.swan.sensors.AbstractMemorySensor;
 
@@ -193,14 +194,15 @@ public class RainSensor extends AbstractMemorySensor {
 	}
 
 	@Override
-	public final void register(String id, String valuePath, Bundle configuration) {
-		RainPoller rainPoller = new RainPoller(id, valuePath, configuration);
+	public final void register(final String id, final ContextTypedValue value) {
+		RainPoller rainPoller = new RainPoller(id, value.getValuePath(),
+				value.getConfiguration());
 		activeThreads.put(id, rainPoller);
 		rainPoller.start();
 	}
 
 	@Override
-	public final void unregister(String id) {
+	public final void unregister(final String id, final ContextTypedValue value) {
 		activeThreads.remove(id).interrupt();
 	}
 
@@ -262,5 +264,4 @@ public class RainSensor extends AbstractMemorySensor {
 			rainPoller.interrupt();
 		}
 	};
-
 }

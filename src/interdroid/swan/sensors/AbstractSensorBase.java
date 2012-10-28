@@ -1,6 +1,7 @@
 package interdroid.swan.sensors;
 
 import interdroid.swan.ConnectionListener;
+import interdroid.swan.contextexpressions.ContextTypedValue;
 import interdroid.swan.contextexpressions.TimestampedValue;
 
 import java.util.ArrayList;
@@ -175,8 +176,8 @@ public abstract class AbstractSensorBase extends Service implements
 	private final IAsynchronousContextSensor.Stub mBinder = new IAsynchronousContextSensor.Stub() {
 
 		@Override
-		public void register(final String id, final String valuePath,
-				final Bundle configuration) throws RemoteException {
+		public void register(final String id, final ContextTypedValue value)
+				throws RemoteException {
 
 			// TODO: We should be checking if valuePath exists and if id is
 			// unique.
@@ -196,21 +197,24 @@ public abstract class AbstractSensorBase extends Service implements
 
 			synchronized (mSensorInterface) {
 				try {
-					LOG.debug("Registering id: {} path: {}", id, valuePath);
+					LOG.debug("Registering id: {} path: {}", id,
+							value.getValuePath());
 					notified.put(getRootIdFor(id), false);
-					registeredConfigurations.put(id, configuration);
-					registeredValuePaths.put(id, valuePath);
-					List<String> ids = expressionIdsPerValuePath.get(valuePath);
+					registeredConfigurations.put(id, value.getConfiguration());
+					registeredValuePaths.put(id, value.getValuePath());
+					List<String> ids = expressionIdsPerValuePath.get(value
+							.getValuePath());
 					if (ids == null) {
 						ids = new ArrayList<String>();
-						expressionIdsPerValuePath.put(valuePath, ids);
+						expressionIdsPerValuePath
+								.put(value.getValuePath(), ids);
 					}
 					ids.add(id);
 					if (LOG.isDebugEnabled()) {
 						printState();
 					}
 					LOG.debug("Registering with implementation.");
-					mSensorInterface.register(id, valuePath, configuration);
+					mSensorInterface.register(id, value);
 				} catch (Exception e) {
 					LOG.error("Caught exception while registering.", e);
 					throw new RemoteException();
@@ -219,7 +223,8 @@ public abstract class AbstractSensorBase extends Service implements
 		}
 
 		@Override
-		public void unregister(final String id) throws RemoteException {
+		public void unregister(final String id, final ContextTypedValue value)
+				throws RemoteException {
 			notified.remove(getRootIdFor(id));
 			registeredConfigurations.remove(id);
 			String valuePath = registeredValuePaths.remove(id);
@@ -228,7 +233,7 @@ public abstract class AbstractSensorBase extends Service implements
 				printState();
 			}
 
-			mSensorInterface.unregister(id);
+			mSensorInterface.unregister(id, value);
 		}
 
 		@Override

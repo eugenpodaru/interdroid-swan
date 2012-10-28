@@ -1,7 +1,8 @@
 package interdroid.swan.sensors.impl;
 
-import interdroid.swan.sensors.AbstractSensorBase;
+import interdroid.swan.contextexpressions.ContextTypedValue;
 import interdroid.swan.contextexpressions.TimestampedValue;
+import interdroid.swan.sensors.AbstractSensorBase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,8 +18,9 @@ public class TimeSensor extends AbstractSensorBase {
 
 	/**
 	 * The configuration activity for this sensor.
+	 * 
 	 * @author nick &lt;palmer@cs.vu.nl&gt;
-	 *
+	 * 
 	 */
 	public static class ConfigurationActivity extends Activity {
 
@@ -52,18 +54,17 @@ public class TimeSensor extends AbstractSensorBase {
 	}
 
 	@Override
-	public final void register(String id, String valuePath, Bundle configuration) {
+	public final void register(final String id, final ContextTypedValue value) {
 		// Nothing to do
 	}
 
 	@Override
-	public final void unregister(String id) {
+	public final void unregister(final String id, final ContextTypedValue value) {
 		// Nothing to do
 	}
 
 	@Override
-	public List<TimestampedValue> getValues(String id, long now,
-			long timespan) {
+	public List<TimestampedValue> getValues(String id, long now, long timespan) {
 		List<TimestampedValue> result = new ArrayList<TimestampedValue>();
 		result.add(new TimestampedValue(now, now));
 		return result;

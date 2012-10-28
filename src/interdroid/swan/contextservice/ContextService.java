@@ -1,9 +1,9 @@
 package interdroid.swan.contextservice;
 
-import interdroid.swan.SwanException;
 import interdroid.swan.ContextManager;
 import interdroid.swan.ContextServiceConnector;
 import interdroid.swan.R;
+import interdroid.swan.SwanException;
 import interdroid.swan.contextexpressions.ContextTypedValue;
 import interdroid.swan.contextexpressions.Expression;
 import interdroid.swan.contextexpressions.Parseable;
@@ -128,9 +128,9 @@ public class ContextService extends Service {
 
 	/**
 	 * Handles boot notifications so we can reregister expressions.
-	 *
+	 * 
 	 * @author nick &lt;palmer@cs.vu.nl&gt;
-	 *
+	 * 
 	 */
 	public static class BootHandler extends BroadcastReceiver {
 
@@ -297,7 +297,7 @@ public class ContextService extends Service {
 	// =-=-=-=- Expression Database -=-=-=-=
 
 	/**
-	 *
+	 * 
 	 * @return all typed values saved in the database.
 	 */
 	private ContextTypedValue[] getSavedValues() {
@@ -384,7 +384,7 @@ public class ContextService extends Service {
 
 	/**
 	 * Delete's an expression from the database.
-	 *
+	 * 
 	 * @param key
 	 *            The id for the expression.
 	 * @param type
@@ -433,7 +433,7 @@ public class ContextService extends Service {
 
 	/**
 	 * Stores an expression to the database.
-	 *
+	 * 
 	 * @param key
 	 *            the key for the expression
 	 * @param value
@@ -516,7 +516,7 @@ public class ContextService extends Service {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see android.app.Service#onCreate()
 	 */
 	@Override
@@ -548,8 +548,8 @@ public class ContextService extends Service {
 		manageForegroundState();
 
 		// TODO: We need a ui to manage registered expressions.
-		Intent notificationIntent =
-				new Intent(this, ExpressionBuilderActivity.class);
+		Intent notificationIntent = new Intent(this,
+				ExpressionBuilderActivity.class);
 		PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
 				notificationIntent, 0);
 		notification.setLatestEventInfo(this, "Swan", "#expressions: "
@@ -592,7 +592,7 @@ public class ContextService extends Service {
 
 	/**
 	 * Send expression change broadcast intent.
-	 *
+	 * 
 	 * @param expression
 	 *            the expression
 	 */
@@ -617,7 +617,7 @@ public class ContextService extends Service {
 
 	/**
 	 * Send expression change broadcast intent.
-	 *
+	 * 
 	 * @param id
 	 *            the id of the expression
 	 * @param values
@@ -634,7 +634,7 @@ public class ContextService extends Service {
 
 	/**
 	 * Send expression change broadcast intent.
-	 *
+	 * 
 	 * @param expression
 	 *            the expression
 	 * @param exception
@@ -665,9 +665,9 @@ public class ContextService extends Service {
 			if (contextExpressions.containsKey(expressionId)) {
 				// for now just throw an exception, may be we should do
 				// replacement,
-				return new SwanServiceException(
-						new SwanException("expression with id '"
-								+ expressionId + "' already exists"));
+				return new SwanServiceException(new SwanException(
+						"expression with id '" + expressionId
+								+ "' already exists"));
 			}
 			// check whether all sensors in the expression exist and accept
 			// the
@@ -763,8 +763,8 @@ public class ContextService extends Service {
 		}
 
 		@Override
-		public SwanServiceException registerContextTypedValue(
-				final String id, final ContextTypedValue contextTypedValue)
+		public SwanServiceException registerContextTypedValue(final String id,
+				final ContextTypedValue contextTypedValue)
 				throws RemoteException {
 			if (contextTypedValues.containsKey(id)) {
 				try {
@@ -791,8 +791,8 @@ public class ContextService extends Service {
 		}
 
 		@Override
-		public SwanServiceException unregisterContextTypedValue(
-				final String id) throws RemoteException {
+		public SwanServiceException unregisterContextTypedValue(final String id)
+				throws RemoteException {
 			synchronized (contextTypedValueQueue) {
 				ContextTypedValue value = contextTypedValues.remove(id);
 				if (value != null) {
@@ -810,7 +810,5 @@ public class ContextService extends Service {
 			return null;
 
 		}
-
 	};
-
 }

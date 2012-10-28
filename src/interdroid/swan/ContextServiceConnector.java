@@ -15,7 +15,7 @@ import android.os.RemoteException;
 /**
  * The Class ContextServiceConnector.
  */
-public abstract class ContextServiceConnector {
+public class ContextServiceConnector {
 	/**
 	 * Access to logger.
 	 */
@@ -70,7 +70,7 @@ public abstract class ContextServiceConnector {
 	 *            the connectionListener object to call onConnected() on after
 	 *            the context manager has been initialized.
 	 */
-	public final void start(final ConnectionListener listener) {
+	public void start(final ConnectionListener listener) {
 		this.connectionListener = listener;
 		getContext().bindService(new Intent(CONTEXT_SERVICE), serviceConnection,
 				Service.BIND_AUTO_CREATE);

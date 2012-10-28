@@ -1,6 +1,7 @@
 package interdroid.swan.sensors.impl;
 
 import interdroid.swan.R;
+import interdroid.swan.contextexpressions.ContextTypedValue;
 import interdroid.swan.sensors.AbstractConfigurationActivity;
 import interdroid.swan.sensors.AbstractMemorySensor;
 
@@ -112,14 +113,15 @@ public class SoundSensor extends AbstractMemorySensor {
 	}
 
 	@Override
-	public final void register(String id, String valuePath, Bundle configuration) {
-		SoundPoller soundPoller = new SoundPoller(id, valuePath, configuration);
+	public final void register(final String id, final ContextTypedValue value) {
+		SoundPoller soundPoller = new SoundPoller(id, value.getValuePath(),
+				value.getConfiguration());
 		activeThreads.put(id, soundPoller);
 		soundPoller.start();
 	}
 
 	@Override
-	public final void unregister(String id) {
+	public final void unregister(final String id, final ContextTypedValue value) {
 		activeThreads.remove(id).interrupt();
 	}
 

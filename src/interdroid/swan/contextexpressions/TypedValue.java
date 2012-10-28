@@ -2,8 +2,9 @@ package interdroid.swan.contextexpressions;
 
 import interdroid.swan.SwanException;
 import interdroid.swan.contextservice.SensorConfigurationException;
-import interdroid.swan.contextservice.SensorSetupFailedException;
 import interdroid.swan.contextservice.SensorManager;
+import interdroid.swan.contextservice.SensorSetupFailedException;
+import interdroid.swan.remote.DeviceManager;
 
 import java.io.Serializable;
 
@@ -29,6 +30,11 @@ public abstract class TypedValue implements Serializable, Parcelable,
 	 * The reduction mode this typed value runs with.
 	 */
 	private HistoryReductionMode mMode;
+	
+	/**
+	 * The device id on which this typed value is to be registered
+	 */
+	private String mDeviceId;
 
 	/**
 	 * Constructs a typed value with the given reduction mode.
@@ -37,11 +43,29 @@ public abstract class TypedValue implements Serializable, Parcelable,
 	 *            the reduction mode. If mode is null mode is set to
 	 *            HistoryReductionMode.DEFAULT_MODE.
 	 */
-	public TypedValue(final HistoryReductionMode mode) {
+	public TypedValue(final HistoryReductionMode mode){
+		this(mode, DeviceManager.LOCAL_DEVICE_ID);
+	}
+	
+	/**
+	 * Constructs a typed value with the given reduction mode and device Id
+	 * @param mode
+	 * 			the reduction mode. If mode is null mode is set to
+	 *          HistoryReductionMode.DEFAULT_MODE.
+	 * @param deviceId
+	 * 			the device Id. If the device Id is null, it will be set to the local device Id.
+	 */
+	public TypedValue(final HistoryReductionMode mode, final String deviceId) {
 		if (mode == null) {
 			mMode = HistoryReductionMode.DEFAULT_MODE;
 		} else {
 			mMode = mode;
+		}
+
+		if (deviceId == null) {
+			mDeviceId = DeviceManager.LOCAL_DEVICE_ID;
+		} else {
+			mDeviceId = deviceId;
 		}
 	}
 
@@ -60,6 +84,20 @@ public abstract class TypedValue implements Serializable, Parcelable,
 	 */
 	public final HistoryReductionMode getHistoryReductionMode() {
 		return mMode;
+	}
+	
+	/**
+	 * @return the deviceId
+	 */
+	public final String getDeviceId(){
+		return mDeviceId;
+	}
+	
+	/**
+	 * @return a value indicating if the typed value addresses a remote device
+	 */
+	public final Boolean isRemote(){
+		return mDeviceId != DeviceManager.LOCAL_DEVICE_ID;
 	}
 
 	/**
@@ -143,11 +181,13 @@ public abstract class TypedValue implements Serializable, Parcelable,
 	 */
 	private void readFromParcel(final Parcel source) {
 		mMode = HistoryReductionMode.convert(source.readInt());
+		mDeviceId = source.readString();
 	}
 
 	@Override
 	public final void writeToParcel(final Parcel dest, final int flags) {
 		dest.writeInt(mMode.convert());
+		dest.writeString(mDeviceId);
 		writeSubclassToParcel(dest, flags);
 	}
 

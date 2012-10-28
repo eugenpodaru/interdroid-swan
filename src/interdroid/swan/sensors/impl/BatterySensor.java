@@ -1,6 +1,7 @@
 package interdroid.swan.sensors.impl;
 
 import interdroid.swan.R;
+import interdroid.swan.contextexpressions.ContextTypedValue;
 import interdroid.swan.sensors.AbstractConfigurationActivity;
 import interdroid.swan.sensors.AbstractVdbSensor;
 import interdroid.vdb.content.avro.AvroContentProviderProxy;
@@ -134,8 +135,7 @@ public class BatterySensor extends AbstractVdbSensor {
 	}
 
 	@Override
-	public final void register(final String id, final String valuePath,
-			final Bundle configuration) {
+	public final void register(final String id, final ContextTypedValue value) {
 		if (registeredConfigurations.size() == 1) {
 			registerReceiver(batteryReceiver, new IntentFilter(
 					Intent.ACTION_BATTERY_CHANGED));
@@ -143,7 +143,7 @@ public class BatterySensor extends AbstractVdbSensor {
 	}
 
 	@Override
-	public final void unregister(final String id) {
+	public final void unregister(final String id, final ContextTypedValue value) {
 		if (registeredConfigurations.size() == 0) {
 			unregisterReceiver(batteryReceiver);
 		}
@@ -155,5 +155,4 @@ public class BatterySensor extends AbstractVdbSensor {
 			unregisterReceiver(batteryReceiver);
 		}
 	}
-
 }

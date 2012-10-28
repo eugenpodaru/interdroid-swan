@@ -1,11 +1,12 @@
 package interdroid.swan.sensors.impl;
 
-import java.lang.reflect.Field;
-
 import interdroid.swan.R;
+import interdroid.swan.contextexpressions.ContextTypedValue;
 import interdroid.swan.sensors.AbstractConfigurationActivity;
 import interdroid.swan.sensors.AbstractVdbSensor;
 import interdroid.vdb.content.avro.AvroContentProviderProxy;
+
+import java.lang.reflect.Field;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -189,8 +190,7 @@ public class LocationSensor extends AbstractVdbSensor {
 	}
 
 	@Override
-	public final void register(final String id, final String valuePath,
-			final Bundle configuration) {
+	public final void register(final String id, final ContextTypedValue value) {
 		if (registeredConfigurations.size() > 0) {
 			updateListener();
 		}
@@ -250,7 +250,7 @@ public class LocationSensor extends AbstractVdbSensor {
 	}
 
 	@Override
-	public final void unregister(final String id) {
+	public final void unregister(final String id, final ContextTypedValue value) {
 		if (registeredConfigurations.size() == 0) {
 			locationManager.removeUpdates(locationListener);
 		} else {
@@ -264,5 +264,4 @@ public class LocationSensor extends AbstractVdbSensor {
 		// TODO Auto-generated method stub
 
 	}
-
 }
