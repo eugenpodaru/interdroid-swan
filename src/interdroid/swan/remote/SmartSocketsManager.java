@@ -7,6 +7,7 @@ import ibis.smartsockets.virtual.VirtualServerSocket;
 import ibis.smartsockets.virtual.VirtualSocket;
 import ibis.smartsockets.virtual.VirtualSocketAddress;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
+import interdroid.swan.remote.messages.Message;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -42,7 +43,7 @@ public class SmartSocketsManager {
 		// TODO: use the naming script in the bin folder of the smartsockets
 		// project to start a hub locally
 		// TODO: use the viz script to visualize the smartsockets overlay
-		sSocketProperties.put(SmartSocketsProperties.HUB_ADDRESSES, "");
+		sSocketProperties.put(SmartSocketsProperties.HUB_ADDRESSES, "192.168.52.170-17878#6e.60.c5.77.9d.7b.00.00.ae.12.00.0c.29.96.b5.82~eugen");
 		sSocketProperties.put(SmartSocketsProperties.DIRECT_CACHE_IP, "false");
 		sSocketProperties.put(SmartSocketsProperties.START_HUB, "true");
 	}
@@ -51,7 +52,7 @@ public class SmartSocketsManager {
 	public static final String SMARTSOCKETS_TRANSPORT_SCHEME = "ss";
 
 	/** The port used to listen for incoming connections */
-	public static final int DEFAULT_PORT = 12345;
+	public static final int DEFAULT_PORT = 19345;
 
 	/** TCP socket backlog. */
 	private static final int BACKLOG = 5;
@@ -215,11 +216,11 @@ public class SmartSocketsManager {
 					String remoteDeviceId = (String) oin.readObject();
 
 					// create an array to hold all the objects
-					ArrayList<Object> results = new ArrayList<Object>();
+					ArrayList<Message> results = new ArrayList<Message>();
 					LOG.debug(remoteDeviceId + " :Start reading objects");
 					try {
 						while (true) {
-							results.add(oin.readObject());
+							results.add((Message)oin.readObject());
 						}
 					} catch (EOFException e) {
 						LOG.debug(remoteDeviceId + " : " + results.size()
@@ -270,7 +271,7 @@ public class SmartSocketsManager {
 	 * @param deviceId
 	 * @param messages
 	 */
-	public void send(String deviceId, Collection<Object> messages) {
+	public void send(String deviceId, Collection<Message> messages) {
 		try {
 			// get the remote peer address
 			VirtualSocketAddress peerAddress = this.getResolver().resolve(

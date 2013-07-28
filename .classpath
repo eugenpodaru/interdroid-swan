@@ -3,7 +3,7 @@
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="test"/>
-	<classpathentry kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
 	<classpathentry exported="true" kind="lib" path="external/antlr-3.4-complete-no-antlrv2.jar"/>
 	<classpathentry exported="true" kind="lib" path="external/cuckoo-client.jar"/>
 	<classpathentry exported="true" kind="lib" path="external/cuckoo-shared.jar"/>
@@ -27,5 +27,6 @@
 	<classpathentry exported="true" kind="lib" path="/vdb/external/jsch-0.1.44-1.jar"/>
 	<classpathentry exported="true" kind="lib" path="/vdb/external/paranamer-2.3.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/smartsockets"/>
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

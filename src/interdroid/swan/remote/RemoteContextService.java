@@ -1,8 +1,13 @@
 package interdroid.swan.remote;
 
 import interdroid.swan.ContextManager;
+import interdroid.swan.ContextTypedValueListener;
+import interdroid.swan.SwanException;
 import interdroid.swan.contextexpressions.ContextTypedValue;
+import interdroid.swan.contextexpressions.TimestampedValue;
 import interdroid.swan.contextservice.SwanServiceException;
+import interdroid.swan.remote.messages.ContextTypedValueNewReadingMessage;
+import interdroid.swan.remote.messages.Message;
 import interdroid.swan.remote.messages.RegisterContextTypedValueMessage;
 import interdroid.swan.remote.messages.UnregisterContextTypedValueMessage;
 
@@ -15,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import android.app.Service;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.IBinder;
 import android.os.RemoteException;
 
@@ -23,11 +29,18 @@ import android.os.RemoteException;
  */
 public class RemoteContextService extends Service {
 	/**
+	 * The broadcast values action
+	 */
+	public static String SEND_VALUES_ACTION = "interdroid.swan.remote.RemoteContextService.SEND_VALUES_ACTION";
+	/**
 	 * Access to logger.
 	 */
 	private static final Logger LOG = LoggerFactory
 			.getLogger(RemoteContextService.class);
 
+	/** The access control manager */
+	private AccessControlManager accessControlManager;
+	
 	/** The device manager */
 	private DeviceManager deviceManager;
 
@@ -79,7 +92,7 @@ public class RemoteContextService extends Service {
 	 */
 	@Override
 	public final void onCreate() {
-		LOG.debug("onCreate");
+		LOG.debug("RemoteContextService:onCreate");
 
 		this.start();
 
@@ -88,7 +101,7 @@ public class RemoteContextService extends Service {
 
 	@Override
 	public final void onDestroy() {
-		LOG.debug("onDestroy");
+		LOG.debug("RemoteContextService:onDestroy");
 
 		this.stop();
 
@@ -101,6 +114,8 @@ public class RemoteContextService extends Service {
 	private void start() {
 		if (!isRunning) {
 
+			// create the access control manager
+			this.accessControlManager = new AccessControlManager(this);
 			// create the device manager
 			this.deviceManager = new DeviceManager(this);
 
@@ -158,14 +173,14 @@ public class RemoteContextService extends Service {
 				String remoteContextTypedValueId = remoteDeviceId + "_" + id;
 
 				// add the value to the list of registered values
-				localContextTypedValues.put(id, contextTypedValue);
+				localContextTypedValues.put(remoteContextTypedValueId, contextTypedValue);
 
 				// send a message to the remote device to register the value
 				RegisterContextTypedValueMessage message = new RegisterContextTypedValueMessage();
 				message.id = remoteContextTypedValueId;
 				message.value = contextTypedValue;
 
-				Collection<Object> messages = new ArrayList<Object>();
+				Collection<Message> messages = new ArrayList<Message>();
 				messages.add(message);
 
 				smartSocketsManager.send(remoteDeviceId, messages);
@@ -189,7 +204,7 @@ public class RemoteContextService extends Service {
 					UnregisterContextTypedValueMessage message = new UnregisterContextTypedValueMessage();
 					message.id = remoteContextTypedId;
 
-					Collection<Object> messages = new ArrayList<Object>();
+					Collection<Message> messages = new ArrayList<Message>();
 					messages.add(message);
 
 					// send messages to the remote device
@@ -197,7 +212,7 @@ public class RemoteContextService extends Service {
 
 					// remove context typed value from the list of registered
 					// values
-					localContextTypedValues.remove(id);
+					localContextTypedValues.remove(remoteContextTypedId);
 				}
 			}
 			// no exception so return null
@@ -213,9 +228,78 @@ public class RemoteContextService extends Service {
 	private final RemoteContextServiceReceiveListener receiveListener = new RemoteContextServiceReceiveListener() {
 
 		@Override
-		public void onReceive(String deviceId, Collection<Object> messages) {
+		public void onReceive(final String deviceId, final Collection<Message> messages) {
+			//go through all the received messages
+			for(Message message : messages)
+			{
+				if(message == null)
+					continue;
+				
+				if(message instanceof RegisterContextTypedValueMessage)
+				{
+					RegisterContextTypedValueMessage(deviceId, (RegisterContextTypedValueMessage)message);
+				}
+				else if(message instanceof UnregisterContextTypedValueMessage)
+				{
+					UnregisterContextTypedValueMessage(deviceId, (UnregisterContextTypedValueMessage)message);
+				}
+				else if(message instanceof ContextTypedValueNewReadingMessage)
+				{
+					ContextTypedValueNewReadingMessage(deviceId, (ContextTypedValueNewReadingMessage)message);
+				}
+			}
+		}
 
-			// TODO process the results
+		private void ContextTypedValueNewReadingMessage(final String deviceId,
+				final ContextTypedValueNewReadingMessage message) {
+			
+			ContextTypedValue value = localContextTypedValues.get(message.id);
+			if(value == null)
+				return;
+			
+			Intent broadcastIntent = new Intent();
+			broadcastIntent.setData(Uri.parse("contextvalues://" + value.getId()));
+			broadcastIntent.setAction(SEND_VALUES_ACTION);
+			broadcastIntent.putExtra("id", value.getId());
+			broadcastIntent.putExtra("values", message.values);
+			sendBroadcast(broadcastIntent);
+		}
+
+		private void UnregisterContextTypedValueMessage(final String deviceId,
+				final UnregisterContextTypedValueMessage message) {
+			try {
+				contextManager.unregisterContextTypedValue(message.id);
+			} catch (SwanException e) {
+				e.printStackTrace();
+			}
+		}
+
+		private void RegisterContextTypedValueMessage(final String deviceId,
+				final RegisterContextTypedValueMessage message) {
+			
+			if(!accessControlManager.hasAccess(deviceId, message.value.getEntity()))
+				//TODO: add an access request for the specified device and sensor
+				return;
+			
+			try {
+				contextManager.registerContextTypedValue(message.id, message.value, new ContextTypedValueListener() {
+					
+					@Override
+					public void onReading(String id, TimestampedValue[] values) {
+						// create a message to send to the remote device
+						ContextTypedValueNewReadingMessage newMessage = new ContextTypedValueNewReadingMessage();
+						newMessage.id = id;
+
+						Collection<Message> newMessages = new ArrayList<Message>();
+						newMessages.add(newMessage);
+
+						// send messages to the remote device
+						smartSocketsManager.send(deviceId, newMessages);
+					}
+				});
+			} catch (SwanException e) {
+				e.printStackTrace();
+			}
 		}
 	};
 }

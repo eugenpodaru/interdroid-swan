@@ -1,5 +1,7 @@
 package interdroid.swan.remote;
 
+import interdroid.swan.remote.messages.Message;
+
 import java.util.Collection;
 
 /**
@@ -14,5 +16,5 @@ public interface RemoteContextServiceReceiveListener {
 	 * @param deviceId
 	 * @param results
 	 */
-	void onReceive(String deviceId, Collection<Object> results);
+	void onReceive(String deviceId, Collection<Message> results);
 }

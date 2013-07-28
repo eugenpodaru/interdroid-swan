@@ -61,8 +61,7 @@ public class RemoteSensor extends AbstractSensorBase {
 		// subscribe to get intents for the following action
 		this.registerReceiver(
 				mReceiver,
-				new IntentFilter(
-						"interdroid.swan.remote.RemoteContextService.SEND_VALUES_ACTION"));
+				new IntentFilter(RemoteContextService.SEND_VALUES_ACTION));
 
 		this.connector = new RemoteContextServiceConnector(this);
 		this.connector.start();
