@@ -348,30 +348,29 @@ public class ContextTypedValue extends TypedValue {
 			final String deviceId) {
 		super(mode, deviceId);
 		String[] splitOnEntity = unparsedContextInfo.split(
-				ENTITY_VALUE_PATH_SEPARATOR, 2);
-		this.mEntity = splitOnEntity[0];
-		if (splitOnEntity.length != 2) {
-			throw new RuntimeException("bad id: '" + unparsedContextInfo
-					+ "' no valuepath");
-		}
-		String[] splitOnValuePath = splitOnEntity[1].split("\\?", 2);
-		this.mValuePath = splitOnValuePath[0];
-		if (splitOnValuePath.length == 2) {
-			String[] splitOnConfigurationItems = splitOnValuePath[1]
-					.split("\\&");
-			if (splitOnConfigurationItems != null
-					&& splitOnConfigurationItems.length > 0) {
-				for (String configurationItem : splitOnConfigurationItems) {
-					if (!configurationItem.contains("=")) {
-						continue;
-					}
-					mConfiguration.putString(configurationItem.split("=")[0],
-							configurationItem.split("=", 2)[1]);
+				ENTITY_VALUE_PATH_SEPARATOR, 2);		this.mEntity = splitOnEntity[0];
+				if (splitOnEntity.length != 2) {
+					throw new RuntimeException("bad id: '" + unparsedContextInfo
+							+ "' no valuepath");
 				}
-			}
-		}
+				String[] splitOnValuePath = splitOnEntity[1].split("\\?", 2);
+				this.mValuePath = splitOnValuePath[0];
+				if (splitOnValuePath.length == 2) {
+					String[] splitOnConfigurationItems = splitOnValuePath[1]
+							.split("\\&");
+					if (splitOnConfigurationItems != null
+							&& splitOnConfigurationItems.length > 0) {
+						for (String configurationItem : splitOnConfigurationItems) {
+							if (!configurationItem.contains("=")) {
+								continue;
+							}
+							mConfiguration.putString(configurationItem.split("=")[0],
+									configurationItem.split("=", 2)[1]);
+						}
+					}
+				}
 
-		setHistoryTimespan(timespan);
+				setHistoryTimespan(timespan);
 	}
 
 	/**
@@ -498,7 +497,7 @@ public class ContextTypedValue extends TypedValue {
 	@Override
 	public final void initialize(final String id,
 			final SensorManager sensorManager)
-			throws SensorConfigurationException, SensorSetupFailedException {
+					throws SensorConfigurationException, SensorSetupFailedException {
 		this.mId = id;
 		mServiceConnection = new ServiceConnection() {
 
@@ -546,12 +545,18 @@ public class ContextTypedValue extends TypedValue {
 
 	@Override
 	public final String toString() {
-		return mEntity + ":" + mValuePath; // + ": " + configuration;
+		if(isRemote())
+			return mEntity + "@" + getDeviceId() + ":" + mValuePath;
+		else
+			return mEntity  + ":" + mValuePath;
 	}
 
 	@Override
 	public final String toParseString() {
-		return mEntity + ":" + mValuePath + getParseConfig() + getModeString();
+		if(isRemote())
+			return mEntity + "@" + getDeviceId() + ":" + mValuePath + getParseConfig() + getModeString();
+		else
+			return mEntity + ":" + mValuePath + getParseConfig() + getModeString();
 	}
 
 	/**
@@ -559,9 +564,8 @@ public class ContextTypedValue extends TypedValue {
 	 */
 	private String getModeString() {
 		String ret;
-		if (!(getHistoryReductionMode().equals(
-				HistoryReductionMode.DEFAULT_MODE) && mTimespan == 0)) {
-			ret = " {" + getHistoryReductionMode().toParseString() + ","
+		if (!(getHistoryReductionMode().equals(HistoryReductionMode.DEFAULT_MODE) && mTimespan == 0)) {
+			ret = "{" + getHistoryReductionMode().toParseString() + ","
 					+ mTimespan + "}";
 		} else {
 			ret = "";

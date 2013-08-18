@@ -1,6 +1,5 @@
 package interdroid.swan.remote.messages;
 
-import interdroid.swan.contextexpressions.ContextTypedValue;
 
 public class RegisterContextTypedValueMessage extends Message {
 
@@ -13,5 +12,5 @@ public class RegisterContextTypedValueMessage extends Message {
 	public String id;
 
 	/** The context typed value */
-	public ContextTypedValue value;
+	public String contextTypedValue;
 }

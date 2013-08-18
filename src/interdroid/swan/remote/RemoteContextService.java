@@ -3,6 +3,7 @@ package interdroid.swan.remote;
 import interdroid.swan.ContextManager;
 import interdroid.swan.ContextTypedValueListener;
 import interdroid.swan.SwanException;
+import interdroid.swan.contextexpressions.ContextExpressionParser;
 import interdroid.swan.contextexpressions.ContextTypedValue;
 import interdroid.swan.contextexpressions.TimestampedValue;
 import interdroid.swan.contextservice.SwanServiceException;
@@ -19,13 +20,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.IBinder;
 import android.os.RemoteException;
 
 /**
- * The Class ContextService.
+ * The Class RemoteContextService.
  */
 public class RemoteContextService extends Service {
 	/**
@@ -40,7 +42,7 @@ public class RemoteContextService extends Service {
 
 	/** The access control manager */
 	private AccessControlManager accessControlManager;
-	
+
 	/** The device manager */
 	private DeviceManager deviceManager;
 
@@ -62,6 +64,22 @@ public class RemoteContextService extends Service {
 	 */
 	private volatile boolean isRunning = false;
 
+	/**
+	 * Handles boot notifications
+	 * 
+	 * @author eugen
+	 * 
+	 */
+	public static class BootHandler extends BroadcastReceiver {
+
+		@Override
+		public final void onReceive(final Context context, final Intent intent) {
+			LOG.debug("Got boot notification!");
+			context.startService(new Intent(context, RemoteContextService.class));
+			LOG.debug("Finished handling boot.");
+		}
+	}
+
 	@Override
 	public final IBinder onBind(final Intent intent) {
 		LOG.debug("onBind {}", mBinder);
@@ -80,6 +98,19 @@ public class RemoteContextService extends Service {
 			final int startId) {
 		LOG.debug("onStart: {} {}", intent, flags);
 
+		//restart the service
+		if(isRunning)
+		{
+			try {
+				stop();
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		start();
+
 		// We want this service to continue running until it is explicitly
 		// stopped, so return sticky.
 		return START_STICKY;
@@ -92,9 +123,6 @@ public class RemoteContextService extends Service {
 	 */
 	@Override
 	public final void onCreate() {
-		LOG.debug("RemoteContextService:onCreate");
-
-		this.start();
 
 		super.onCreate();
 	}
@@ -103,7 +131,7 @@ public class RemoteContextService extends Service {
 	public final void onDestroy() {
 		LOG.debug("RemoteContextService:onDestroy");
 
-		this.stop();
+		stop();
 
 		super.onDestroy();
 	}
@@ -115,21 +143,21 @@ public class RemoteContextService extends Service {
 		if (!isRunning) {
 
 			// create the access control manager
-			this.accessControlManager = new AccessControlManager(this);
+			accessControlManager = new AccessControlManager(this);
 			// create the device manager
-			this.deviceManager = new DeviceManager(this);
+			deviceManager = new DeviceManager(this);
 
 			// start the smart socket manager
-			this.smartSocketsManager = new SmartSocketsManager(
-					this.deviceManager.getExternalLocalDeviceId(),
+			smartSocketsManager = new SmartSocketsManager(
+					deviceManager.getExternalLocalDeviceId(),
 					receiveListener);
-			this.smartSocketsManager.start();
+			smartSocketsManager.start();
 
 			// initialize the context manager
-			this.contextManager = new ContextManager(this);
-			this.contextManager.start();
+			contextManager = new ContextManager(this);
+			contextManager.start();
 
-			this.isRunning = true;
+			isRunning = true;
 		}
 	}
 
@@ -138,13 +166,13 @@ public class RemoteContextService extends Service {
 	 */
 	private void stop() {
 		if (isRunning) {
-			this.contextManager.stop();
-			this.contextManager = null;
+			contextManager.stop();
+			contextManager = null;
 
-			if (this.smartSocketsManager != null)
-				this.smartSocketsManager.stop();
-			this.smartSocketsManager = null;
-			this.deviceManager = null;
+			if (smartSocketsManager != null)
+				smartSocketsManager.stop();
+			smartSocketsManager = null;
+			deviceManager = null;
 
 			isRunning = false;
 		}
@@ -166,21 +194,20 @@ public class RemoteContextService extends Service {
 		@Override
 		public SwanServiceException registerContextTypedValue(final String id,
 				final ContextTypedValue contextTypedValue)
-				throws RemoteException {
+						throws RemoteException {
 			synchronized (localContextTypedValues) {
 				// get the ids for the value
 				String remoteDeviceId = contextTypedValue.getDeviceId();
-				String remoteContextTypedValueId = remoteDeviceId + "_" + id;
 
 				// add the value to the list of registered values
-				localContextTypedValues.put(remoteContextTypedValueId, contextTypedValue);
+				localContextTypedValues.put(id, contextTypedValue);
 
 				// send a message to the remote device to register the value
 				RegisterContextTypedValueMessage message = new RegisterContextTypedValueMessage();
-				message.id = remoteContextTypedValueId;
-				message.value = contextTypedValue;
+				message.id = id;
+				message.contextTypedValue = contextTypedValue.toParseString();
 
-				Collection<Message> messages = new ArrayList<Message>();
+				ArrayList<Message> messages = new ArrayList<Message>();
 				messages.add(message);
 
 				smartSocketsManager.send(remoteDeviceId, messages);
@@ -198,13 +225,12 @@ public class RemoteContextService extends Service {
 					ContextTypedValue contextTypedValue = localContextTypedValues
 							.get(id);
 					String remoteDeviceId = contextTypedValue.getDeviceId();
-					String remoteContextTypedId = remoteDeviceId + "_" + id;
 
 					// create a message to send to the remote device
 					UnregisterContextTypedValueMessage message = new UnregisterContextTypedValueMessage();
-					message.id = remoteContextTypedId;
+					message.id = id;
 
-					Collection<Message> messages = new ArrayList<Message>();
+					ArrayList<Message> messages = new ArrayList<Message>();
 					messages.add(message);
 
 					// send messages to the remote device
@@ -212,7 +238,7 @@ public class RemoteContextService extends Service {
 
 					// remove context typed value from the list of registered
 					// values
-					localContextTypedValues.remove(remoteContextTypedId);
+					localContextTypedValues.remove(id);
 				}
 			}
 			// no exception so return null
@@ -234,7 +260,7 @@ public class RemoteContextService extends Service {
 			{
 				if(message == null)
 					continue;
-				
+
 				if(message instanceof RegisterContextTypedValueMessage)
 				{
 					RegisterContextTypedValueMessage(deviceId, (RegisterContextTypedValueMessage)message);
@@ -252,23 +278,29 @@ public class RemoteContextService extends Service {
 
 		private void ContextTypedValueNewReadingMessage(final String deviceId,
 				final ContextTypedValueNewReadingMessage message) {
-			
-			ContextTypedValue value = localContextTypedValues.get(message.id);
+
+			String id = message.id;
+
+			ArrayList<TimestampedValue> values = new ArrayList<TimestampedValue>();
+			for(int i=0;i<message.values.length;i++)
+				values.add(message.values[i]);
+
+			ContextTypedValue value = localContextTypedValues.get(id);
 			if(value == null)
 				return;
-			
+
 			Intent broadcastIntent = new Intent();
-			broadcastIntent.setData(Uri.parse("contextvalues://" + value.getId()));
 			broadcastIntent.setAction(SEND_VALUES_ACTION);
-			broadcastIntent.putExtra("id", value.getId());
-			broadcastIntent.putExtra("values", message.values);
+			broadcastIntent.putExtra("id", id);
+			broadcastIntent.putExtra("values", values);
 			sendBroadcast(broadcastIntent);
 		}
 
 		private void UnregisterContextTypedValueMessage(final String deviceId,
 				final UnregisterContextTypedValueMessage message) {
 			try {
-				contextManager.unregisterContextTypedValue(message.id);
+				final String localId = deviceId + "_" + message.id;
+				contextManager.unregisterContextTypedValue(localId);
 			} catch (SwanException e) {
 				e.printStackTrace();
 			}
@@ -276,21 +308,30 @@ public class RemoteContextService extends Service {
 
 		private void RegisterContextTypedValueMessage(final String deviceId,
 				final RegisterContextTypedValueMessage message) {
-			
-			if(!accessControlManager.hasAccess(deviceId, message.value.getEntity()))
-				//TODO: add an access request for the specified device and sensor
-				return;
-			
+
 			try {
-				contextManager.registerContextTypedValue(message.id, message.value, new ContextTypedValueListener() {
-					
+				final String remoteId = message.id;
+				final String localId = deviceId + "_" + remoteId;
+
+				ContextTypedValue contextTypedValue = (ContextTypedValue)ContextExpressionParser.parseTypedValue(message.contextTypedValue);
+				//make sure the value has the local device id
+				contextTypedValue.setDeviceId(DeviceManager.LOCAL_DEVICE_ID);
+
+				if(!accessControlManager.hasAccess(deviceId, contextTypedValue.getEntity()))
+					//TODO: add an access request for the specified device and sensor
+					return;
+
+				contextManager.registerContextTypedValue(localId, contextTypedValue, new ContextTypedValueListener() {
+
 					@Override
 					public void onReading(String id, TimestampedValue[] values) {
+
 						// create a message to send to the remote device
 						ContextTypedValueNewReadingMessage newMessage = new ContextTypedValueNewReadingMessage();
-						newMessage.id = id;
+						newMessage.id = remoteId;
+						newMessage.values = values;
 
-						Collection<Message> newMessages = new ArrayList<Message>();
+						ArrayList<Message> newMessages = new ArrayList<Message>();
 						newMessages.add(newMessage);
 
 						// send messages to the remote device
@@ -300,6 +341,23 @@ public class RemoteContextService extends Service {
 			} catch (SwanException e) {
 				e.printStackTrace();
 			}
+		}
+	};
+
+	public final static class ConnectivityChangedBroadcastReceiver extends BroadcastReceiver 
+	{
+		/**
+		 * Access to logger. Connectivity
+		 */
+		private static final Logger LOG = LoggerFactory
+				.getLogger(RemoteContextService.class);
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+
+			LOG.debug("ConnectivityChangedBroadcastReceiver:onReceive");
+
+			context.startService(new Intent(context, RemoteContextService.class));
 		}
 	};
 }

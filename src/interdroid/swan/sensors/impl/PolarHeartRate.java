@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -43,7 +44,7 @@ public class PolarHeartRate extends AbstractVdbSensor {
 	 * 
 	 */
 	public static class ConfigurationActivity extends
-			AbstractConfigurationActivity {
+	AbstractConfigurationActivity {
 
 		@Override
 		public final int getPreferencesXML() {
@@ -106,6 +107,43 @@ public class PolarHeartRate extends AbstractVdbSensor {
 	private BluetoothAdapter mBluetoothAdapter;
 	/** The threads which are monitoring various devices. */
 	private Map<String, Thread> mServiceThreads = new HashMap<String, Thread>();
+
+	private class MocDataDeviceThread extends Thread{
+
+		/** Time to sleep before pooling for more input to read. */
+		private static final int POLL_DELAY = 1000;
+
+		private Random random = new Random();
+
+		@Override
+		public void run() {
+
+			boolean interrupted = false;
+			// Avoid pressure on the GC
+			ContentValues values = new ContentValues();
+			List<String> rris = new ArrayList<String>();
+			rris.add("sample");
+			
+			while (!interrupted && !interrupted()) {
+				// Index runs from 1 to 15 and repeats
+				int index = random.nextInt(14) + 1;
+				// Always seeing 241 for status? Battery?
+				int status = 241;
+				// This seems to be right.
+				int bpm = random.nextInt(100) + 40;
+
+				storeValues(values, index, status, bpm, rris);
+
+				try {
+					sleep(POLL_DELAY);
+				} catch (InterruptedException e) {
+					interrupted = true;
+					LOG.debug("Interrupted while waiting for reading: {}",
+							interrupted());
+				}
+			}
+		}
+	};
 
 	/** A thread monitoring one device. */
 	private class DeviceThread extends Thread {
@@ -236,45 +274,51 @@ public class PolarHeartRate extends AbstractVdbSensor {
 	@Override
 	public final void register(final String id, final ContextTypedValue value)
 			throws IOException {
-		if (!mBluetoothAdapter.isEnabled()) {
-			throw new IllegalStateException("Bluetooth is not enabled.");
-		}
-
-		String deviceName = value.getConfiguration().getString(DEVICE_NAME);
-		if (null == deviceName) {
-			deviceName = mDefaultConfiguration.getString(DEVICE_NAME);
-		}
-		boolean found = false;
-		if (mBluetoothAdapter.isEnabled()) {
-			for (BluetoothDevice device : mBluetoothAdapter.getBondedDevices()) {
-				if (device.getName().equals(deviceName)) {
-					LOG.debug("Found paired Polar iWL {}" + device);
-
-					UUID uuid = UUID
-							.fromString("00001101-0000-1000-8000-00805F9B34FB");
-					BluetoothSocket socket;
-					try {
-						socket = device.createRfcommSocketToServiceRecord(uuid);
-						socket.connect();
-						InputStream inStream = socket.getInputStream();
-
-						DeviceThread serviceThread = new DeviceThread(inStream);
-						serviceThread.start();
-						mServiceThreads.put(id, serviceThread);
-						found = true;
-						break;
-					} catch (IOException e) {
-						LOG.error("Unable to connect to device.", e);
-						throw e;
-					}
-				}
-			}
-		}
-		if (!found) {
-			throw new IllegalArgumentException(
-					"Unable to find bonded device to pair with name: "
-							+ deviceName);
-		}
+		
+		MocDataDeviceThread mocServiceThread = new MocDataDeviceThread();
+		mocServiceThread.start();
+		mServiceThreads.put(id, mocServiceThread);
+		return;
+		
+//		if (!mBluetoothAdapter.isEnabled()) {
+//			throw new IllegalStateException("Bluetooth is not enabled.");
+//		}
+//
+//		String deviceName = value.getConfiguration().getString(DEVICE_NAME);
+//		if (null == deviceName) {
+//			deviceName = mDefaultConfiguration.getString(DEVICE_NAME);
+//		}
+//		boolean found = false;
+//		if (mBluetoothAdapter.isEnabled()) {
+//			for (BluetoothDevice device : mBluetoothAdapter.getBondedDevices()) {
+//				if (device.getName().equals(deviceName)) {
+//					LOG.debug("Found paired Polar iWL {}" + device);
+//
+//					UUID uuid = UUID
+//							.fromString("00001101-0000-1000-8000-00805F9B34FB");
+//					BluetoothSocket socket;
+//					try {
+//						socket = device.createRfcommSocketToServiceRecord(uuid);
+//						socket.connect();
+//						InputStream inStream = socket.getInputStream();
+//
+//						DeviceThread serviceThread = new DeviceThread(inStream);
+//						serviceThread.start();
+//						mServiceThreads.put(id, serviceThread);
+//						found = true;
+//						break;
+//					} catch (IOException e) {
+//						LOG.error("Unable to connect to device.", e);
+//						throw e;
+//					}
+//				}
+//			}
+//		}
+//		if (!found) {
+//			throw new IllegalArgumentException(
+//					"Unable to find bonded device to pair with name: "
+//							+ deviceName);
+//		}
 	}
 
 	@Override
@@ -300,7 +344,7 @@ public class PolarHeartRate extends AbstractVdbSensor {
 
 	@Override
 	public final void onConnected() {
-		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+		//mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 	}
 
 	@Override

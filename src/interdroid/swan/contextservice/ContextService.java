@@ -1,7 +1,6 @@
 package interdroid.swan.contextservice;
 
 import interdroid.swan.ContextManager;
-import interdroid.swan.ContextServiceConnector;
 import interdroid.swan.R;
 import interdroid.swan.SwanException;
 import interdroid.swan.contextexpressions.ContextTypedValue;
@@ -137,11 +136,9 @@ public class ContextService extends Service {
 		@Override
 		public final void onReceive(final Context context, final Intent intent) {
 			LOG.debug("Got boot notification!");
-			context.startService(new Intent(
-					ContextServiceConnector.CONTEXT_SERVICE));
+			context.startService(new Intent(context, ContextService.class));
 			LOG.debug("Finished handling boot.");
 		}
-
 	}
 
 	/** The evaluation queue. */
@@ -607,7 +604,7 @@ public class ContextService extends Service {
 			break;
 		case ContextManager.UNDEFINED:
 			broadcastIntent
-					.setAction(ContextManager.ACTION_EXPRESSIONUNDEFINED);
+			.setAction(ContextManager.ACTION_EXPRESSIONUNDEFINED);
 			break;
 		default:
 			broadcastIntent.setAction(ContextManager.ACTION_EXPRESSIONFALSE);
@@ -656,7 +653,7 @@ public class ContextService extends Service {
 		@Override
 		public SwanServiceException addContextExpression(
 				final String expressionId, final Expression expression)
-				throws RemoteException {
+						throws RemoteException {
 			LOG.debug("Adding context expression: {}. {}", expressionId,
 					expression);
 			// check whether there already exists an expression with the given
@@ -667,7 +664,7 @@ public class ContextService extends Service {
 				// replacement,
 				return new SwanServiceException(new SwanException(
 						"expression with id '" + expressionId
-								+ "' already exists"));
+						+ "' already exists"));
 			}
 			// check whether all sensors in the expression exist and accept
 			// the
@@ -765,7 +762,7 @@ public class ContextService extends Service {
 		@Override
 		public SwanServiceException registerContextTypedValue(final String id,
 				final ContextTypedValue contextTypedValue)
-				throws RemoteException {
+						throws RemoteException {
 			if (contextTypedValues.containsKey(id)) {
 				try {
 					contextTypedValues.get(id).destroy(id, sensorManager);

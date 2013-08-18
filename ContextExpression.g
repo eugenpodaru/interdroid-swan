@@ -91,6 +91,11 @@ value_path	returns [String value_path]
 	)*
 		{$value_path = buf.toString();}
 	;
+	
+device_id	returns [String device_id]
+	:	id=INT {$device_id = $id.getText();}
+	|	id=DEVICE_ID {$device_id = $id.getText();}
+	;
 
 comparator	returns [Comparator comparator]
 	:	GT {$comparator = Comparator.GREATER_THAN;}
@@ -150,23 +155,23 @@ history_mode returns [HistoryReductionMode history_mode]
 context_typed_value returns [ContextTypedValue typed_value]
 	:	entity=ID ':' path=value_path
 			{$typed_value = new ContextTypedValue(entity.getText(), path /*.value_path */);}
-	|	entity=ID '@' deviceId=ID ':' path=value_path
-			{$typed_value = new ContextTypedValue(entity.getText(), path /*.value_path */, deviceId.getText() /*.deviceId */);}
+	|	entity=ID '@' deviceId=device_id ':' path=value_path
+			{$typed_value = new ContextTypedValue(entity.getText(), path /*.value_path */, deviceId /*.deviceId */);}
 	|	entity=ID ':' path=value_path '?' config=configuration_options
 			{$typed_value = new ContextTypedValue(entity.getText(), path /* .value_path */, config /*.configuration */);}
-	|	entity=ID '@' deviceId=ID ':' path=value_path '?' config=configuration_options
-			{$typed_value = new ContextTypedValue(entity.getText(), path /* .value_path */, deviceId.getText() /*.deviceId */, config /*.configuration */);}
+	|	entity=ID '@' deviceId=device_id ':' path=value_path '?' config=configuration_options
+			{$typed_value = new ContextTypedValue(entity.getText(), path /* .value_path */, deviceId /*.deviceId */, config /*.configuration */);}
 	|	entity=ID ':' path=value_path '{' ((mode=history_mode ',' time=time_value) | mode=history_mode | time=time_value) '}'
 			{if (time == null) {
 				$typed_value = new ContextTypedValue(entity.getText(), path /* .value_path */, mode /*.history_mode */);
 			} else {
 				$typed_value = new ContextTypedValue(entity.getText(), path /* .value_path */, mode /*.history_mode */, time);
 			}}
-	|	entity=ID '@' deviceId=ID ':' path=value_path '{' ((mode=history_mode ',' time=time_value) | mode=history_mode | time=time_value) '}'
+	|	entity=ID '@' deviceId=device_id ':' path=value_path '{' ((mode=history_mode ',' time=time_value) | mode=history_mode | time=time_value) '}'
 			{if (time == null) {
-				$typed_value = new ContextTypedValue(entity.getText(), path /* .value_path */, deviceId.getText() /*.deviceId */, mode /*.history_mode */);
+				$typed_value = new ContextTypedValue(entity.getText(), path /* .value_path */, deviceId /*.deviceId */, mode /*.history_mode */);
 			} else {
-				$typed_value = new ContextTypedValue(entity.getText(), path /* .value_path */, deviceId.getText() /*.deviceId */, mode /*.history_mode */, time);
+				$typed_value = new ContextTypedValue(entity.getText(), path /* .value_path */, deviceId /*.deviceId */, mode /*.history_mode */, time);
 			}}
 	|	entity=ID ':' path=value_path '?' config=configuration_options '{' ((mode=history_mode ',' time=time_value) | mode=history_mode | time=time_value) '}'
 			{if (time == null) {
@@ -174,11 +179,11 @@ context_typed_value returns [ContextTypedValue typed_value]
 			} else {
 				$typed_value = new ContextTypedValue(entity.getText(), path /* .value_path */ , config /*.configuration */ , mode /* .history_mode */ , time);
 			}}
-	|	entity=ID '@' deviceId=ID ':' path=value_path '?' config=configuration_options '{' ((mode=history_mode ',' time=time_value) | mode=history_mode | time=time_value) '}'
+	|	entity=ID '@' deviceId=device_id ':' path=value_path '?' config=configuration_options '{' ((mode=history_mode ',' time=time_value) | mode=history_mode | time=time_value) '}'
 			{if (time == null) {
-				$typed_value = new ContextTypedValue(entity.getText(), path /* .value_path */, deviceId.getText() /*.deviceId */, config /*.configuration */ , mode /* .history_mode */);
+				$typed_value = new ContextTypedValue(entity.getText(), path /* .value_path */, deviceId /*.deviceId */, config /*.configuration */ , mode /* .history_mode */);
 			} else {
-				$typed_value = new ContextTypedValue(entity.getText(), path /* .value_path */, deviceId.getText() /*.deviceId */, config /*.configuration */ , mode /* .history_mode */ , time);
+				$typed_value = new ContextTypedValue(entity.getText(), path /* .value_path */, deviceId /*.deviceId */, config /*.configuration */ , mode /* .history_mode */ , time);
 			}}
 	;
 
@@ -389,6 +394,9 @@ ID  :	('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'0'..'9'|'_')*
 
 INT :	('-')? '0'..'9'+
     ;
+    
+DEVICE_ID	: ('+')? ('0'..'9'|'-')+
+			;
 
 FLOAT
     :   ('-')? ('0'..'9')+ '.' ('0'..'9')* EXPONENT?

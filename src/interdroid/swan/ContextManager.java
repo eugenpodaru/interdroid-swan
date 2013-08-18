@@ -33,9 +33,6 @@ public class ContextManager extends ContextServiceConnector {
 	private static final Logger LOG = LoggerFactory
 			.getLogger(ContextManager.class);
 
-	/** The RemoteContextService intent action. */
-	public static final String REMOTE_CONTEXT_SERVICE = "interdroid.swan.intent.REMOTECONTEXTSERVICE";
-
 	/** The intent action for broadcasts of new readings. */
 	public static final String ACTION_NEWREADING = "interdroid.swan.NEWREADING";
 

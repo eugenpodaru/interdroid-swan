@@ -93,11 +93,15 @@ public abstract class TypedValue implements Serializable, Parcelable,
 		return mDeviceId;
 	}
 	
+	public final void setDeviceId(String deviceId){
+		mDeviceId = deviceId;
+	}
+	
 	/**
 	 * @return a value indicating if the typed value addresses a remote device
 	 */
 	public final Boolean isRemote(){
-		return mDeviceId != DeviceManager.LOCAL_DEVICE_ID;
+		return !mDeviceId.equals(DeviceManager.LOCAL_DEVICE_ID);
 	}
 
 	/**

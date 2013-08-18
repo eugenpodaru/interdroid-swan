@@ -9,15 +9,12 @@ import ibis.smartsockets.virtual.VirtualSocketAddress;
 import ibis.smartsockets.virtual.VirtualSocketFactory;
 import interdroid.swan.remote.messages.Message;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.net.SocketAddress;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -36,16 +33,9 @@ public class SmartSocketsManager {
 	 */
 	private static Properties sSocketProperties = new Properties();
 	static {
-
-		// TODO: put effective address here
-		// run a hub locally and add the ip of the hub here
-
-		// TODO: use the naming script in the bin folder of the smartsockets
-		// project to start a hub locally
-		// TODO: use the viz script to visualize the smartsockets overlay
-		sSocketProperties.put(SmartSocketsProperties.HUB_ADDRESSES, "192.168.52.170-17878#6e.60.c5.77.9d.7b.00.00.ae.12.00.0c.29.96.b5.82~eugen");
+		sSocketProperties.put(SmartSocketsProperties.HUB_ADDRESSES, "192.168.52.213-17878#82.c0.e5.78.a1.7b.00.00.5f.da.00.0c.29.fb.92.e1~eugen");
 		sSocketProperties.put(SmartSocketsProperties.DIRECT_CACHE_IP, "false");
-		sSocketProperties.put(SmartSocketsProperties.START_HUB, "true");
+		sSocketProperties.put(SmartSocketsProperties.START_HUB, "false");
 	}
 
 	/** The scheme used by this transport. */
@@ -58,7 +48,7 @@ public class SmartSocketsManager {
 	private static final int BACKLOG = 5;
 
 	/** The timeout used when trying to connect to a remote device */
-	private static final int SOCKET_TIMEOUT = 5000;
+	private static final int TIMEOUT = 30000;
 
 	/**
 	 * The id that is used to register the device to the smart sockets resolver
@@ -201,10 +191,6 @@ public class SmartSocketsManager {
 			@Override
 			public void run() {
 				try {
-					// get the peers address
-					final SocketAddress peer = virtualSocket
-							.getRemoteSocketAddress();
-
 					// get the input stream for the socket
 					InputStream in = virtualSocket.getInputStream();
 
@@ -216,16 +202,7 @@ public class SmartSocketsManager {
 					String remoteDeviceId = (String) oin.readObject();
 
 					// create an array to hold all the objects
-					ArrayList<Message> results = new ArrayList<Message>();
-					LOG.debug(remoteDeviceId + " :Start reading objects");
-					try {
-						while (true) {
-							results.add((Message)oin.readObject());
-						}
-					} catch (EOFException e) {
-						LOG.debug(remoteDeviceId + " : " + results.size()
-								+ " objects read");
-					}
+					ArrayList<Message> results = (ArrayList<Message>)oin.readObject();
 
 					// close the input streams
 					oin.close();
@@ -271,18 +248,18 @@ public class SmartSocketsManager {
 	 * @param deviceId
 	 * @param messages
 	 */
-	public void send(String deviceId, Collection<Message> messages) {
+	public void send(String deviceId, ArrayList<Message> messages) {
 		try {
 			// get the remote peer address
-			VirtualSocketAddress peerAddress = this.getResolver().resolve(
-					deviceId);
+			VirtualSocketAddress peerAddress = getResolver().resolve(
+					deviceId, TIMEOUT);
 
 			LOG.debug("Trying to create a client socket to the peer: "
 					+ deviceId);
-			
+
 			// create a socket to connect to the remote peer
 			VirtualSocket clientSocket = mSocketFactory.createClientSocket(
-					peerAddress, SOCKET_TIMEOUT, null);
+					peerAddress, TIMEOUT, null);
 			LOG.debug("Client socket created for the peer: " + deviceId);
 
 			// get the output stream for connection
@@ -290,13 +267,10 @@ public class SmartSocketsManager {
 			ObjectOutputStream oout = new ObjectOutputStream(out);
 
 			// send the device id as the first object on the wire
-			oout.writeObject(deviceId);
+			oout.writeObject(mLocalDeviceId);
 
 			LOG.debug("Writing the objects to the output stream.");
-			// write all the messages to the output stream
-			for (Object message : messages) {
-				oout.writeObject(message);
-			}
+			oout.writeObject(messages);
 			LOG.debug("All objects were written.");
 
 			// close the streams

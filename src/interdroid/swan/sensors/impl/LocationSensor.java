@@ -243,6 +243,9 @@ public class LocationSensor extends AbstractVdbSensor {
 		if (minDistance == Long.MAX_VALUE) {
 			minDistance = mDefaultConfiguration.getLong(MIN_DISTANCE);
 		}
+		
+		//we need to force this to the GPS_PROVIDER
+		mostAccurateProvider = LocationManager.GPS_PROVIDER;
 
 		locationManager.removeUpdates(locationListener);
 		locationManager.requestLocationUpdates(mostAccurateProvider, minTime,

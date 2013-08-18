@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -49,7 +50,7 @@ public class SmartLocationSensor extends AbstractVdbSensor {
 	 * 
 	 */
 	public static class ConfigurationActivity extends
-			AbstractConfigurationActivity {
+	AbstractConfigurationActivity {
 
 		@Override
 		public final int getPreferencesXML() {
@@ -272,21 +273,22 @@ public class SmartLocationSensor extends AbstractVdbSensor {
 		} catch (Throwable t) {
 			mRequestSingleUpdateMethod = null;
 		}
-		// // construct the mock location provider (for testing)
-		// try {
-		// locationManager.removeTestProvider("test");
-		// } catch (Throwable t) {
-		// // ignore
-		// }
-		// locationManager
-		// .addTestProvider("test", false, false, false, false, false,
-		// false, false, Criteria.POWER_LOW,
-		// Criteria.ACCURACY_FINE);
-		// // and enable it
-		// locationManager.setTestProviderEnabled("test", true);
-		//
-		// // and run the update thread
-		// mockUpdateThread.start();
+
+		// construct the mock location provider (for testing)
+		try {
+			locationManager.removeTestProvider("test");
+		} catch (Throwable t) {
+			// ignore
+		}
+		locationManager
+		.addTestProvider("test", false, false, false, false, false,
+				false, false, Criteria.POWER_LOW,
+				Criteria.ACCURACY_FINE);
+		// and enable it
+		locationManager.setTestProviderEnabled("test", true);
+
+		// and run the update thread
+		mockUpdateThread.start();
 
 	}
 
@@ -410,11 +412,11 @@ public class SmartLocationSensor extends AbstractVdbSensor {
 	/**** TESTING CODE FOR MOCK LOCATIONS ***/
 
 	private static final double[][] MOCK_LOCATIONS = new double[][] {
-			{ 52.333943, 4.864549 /* VU */},
-			{ 52.321983, 4.927613 /* Duivendrecht */},
-			{ 52.279711, 5.157254 /* Naarden-Bussum */},
-			{ 52.154294, 5.36587 /* Amersfoort */},
-			{ 52.154346, 5.922947 /* Apeldoorn */} };
+		{ 52.333943, 4.864549 /* VU */},
+		{ 52.321983, 4.927613 /* Duivendrecht */},
+		{ 52.279711, 5.157254 /* Naarden-Bussum */},
+		{ 52.154294, 5.36587 /* Amersfoort */},
+		{ 52.154346, 5.922947 /* Apeldoorn */} };
 
 	private static final double MOCK_SPEED = 750; // m/s
 
@@ -444,10 +446,10 @@ public class SmartLocationSensor extends AbstractVdbSensor {
 					float nextFraction = 1 - indexFraction;
 					location.setLatitude(MOCK_LOCATIONS[index][0]
 							* indexFraction + MOCK_LOCATIONS[next][0]
-							* nextFraction);
+									* nextFraction);
 					location.setLongitude(MOCK_LOCATIONS[index][1]
 							* indexFraction + MOCK_LOCATIONS[next][1]
-							* nextFraction);
+									* nextFraction);
 					locationManager.setTestProviderLocation("test", location);
 					try {
 						sleep(1000);
@@ -468,5 +470,4 @@ public class SmartLocationSensor extends AbstractVdbSensor {
 			}
 		}
 	};
-
 }
